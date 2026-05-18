@@ -194,7 +194,7 @@ ipcMain.on('activation-done', () => {
   showMainWindow();
 });
 
-const BUY_URL = 'https://fencebreaker.lemonsqueezy.com/checkout/buy/c6ad3df7-62a2-456d-a273-b4273ee9ef2d';
+const BUY_URL = 'https://gouveia58.gumroad.com/l/fencebreaker-pro';
 
 ipcMain.on('open-buy-page', () => {
   shell.openExternal(BUY_URL);

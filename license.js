@@ -5,11 +5,12 @@ const fs      = require('fs');
 const https   = require('https');
 const crypto  = require('crypto');
 
-const TRIAL_DAYS    = 7;
-const LICENSE_FILE  = () => path.join(app.getPath('userData'), 'license.json');
-const MACHINE_FILE  = () => path.join(app.getPath('userData'), '.mid');
+const TRIAL_DAYS       = 7;
+const GUMROAD_PRODUCT  = 'fencebreaker-pro';
+const LICENSE_FILE     = () => path.join(app.getPath('userData'), 'license.json');
+const MACHINE_FILE     = () => path.join(app.getPath('userData'), '.mid');
 
-// ── Machine ID (stored UUID, created on first run) ────────────────────────────
+// ── Machine ID ────────────────────────────────────────────────────────────────
 
 function getMachineId() {
   const f = MACHINE_FILE();
@@ -42,19 +43,23 @@ function trialDaysElapsed() {
   return Math.floor((Date.now() - start) / 86_400_000);
 }
 
-// ── Lemon Squeezy API ─────────────────────────────────────────────────────────
+// ── Gumroad API ───────────────────────────────────────────────────────────────
 
-function lsRequest(endpoint, body) {
+function gumroadVerify(licenseKey, incrementUses) {
   return new Promise((resolve, reject) => {
-    const payload = JSON.stringify(body);
+    const body = new URLSearchParams({
+      product_permalink:    GUMROAD_PRODUCT,
+      license_key:          licenseKey,
+      increment_uses_count: incrementUses ? 'true' : 'false',
+    }).toString();
+
     const req = https.request({
-      hostname: 'api.lemonsqueezy.com',
-      path: `/v1/licenses/${endpoint}`,
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload),
+      hostname: 'api.gumroad.com',
+      path:     '/v2/licenses/verify',
+      method:   'POST',
+      headers:  {
+        'Content-Type':   'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(body),
       },
     }, res => {
       let raw = '';
@@ -65,7 +70,7 @@ function lsRequest(endpoint, body) {
       });
     });
     req.on('error', reject);
-    req.write(payload);
+    req.write(body);
     req.end();
   });
 }
@@ -78,28 +83,24 @@ async function activate(licenseKey) {
 
   let res;
   try {
-    res = await lsRequest('activate', {
-      license_key: key,
-      instance_name: getMachineId(),
-    });
+    res = await gumroadVerify(key, true);
   } catch {
     return { ok: false, error: 'No internet connection.' };
   }
 
-  if (res.status === 200 && res.body.activated) {
+  if (res.status === 200 && res.body.success === true) {
     const d = read();
     d.licenseKey  = key;
-    d.instanceId  = res.body.instance?.id;
     d.activatedAt = Date.now();
-    d.email       = res.body.meta?.customer_email || '';
+    d.email       = res.body.purchase?.email || '';
+    d.machineId   = getMachineId();
     write(d);
     return { ok: true, email: d.email };
   }
 
-  // LS returns 400 when license is already used on another machine
-  const errMsg = res.body?.error || '';
-  if (errMsg.toLowerCase().includes('already')) {
-    return { ok: false, error: 'This license is already activated on another machine.' };
+  const msg = (res.body?.message || '').toLowerCase();
+  if (msg.includes('exceeded') || msg.includes('used')) {
+    return { ok: false, error: 'This license has already been used the maximum number of times.' };
   }
   return { ok: false, error: 'Invalid license key. Check your purchase email.' };
 }
@@ -108,19 +109,16 @@ async function silentValidate() {
   const d = read();
   if (!d.licenseKey) return false;
   try {
-    const res = await lsRequest('validate', {
-      license_key: d.licenseKey,
-      instance_id: d.instanceId,
-    });
-    return res.status === 200 && res.body.valid === true;
+    const res = await gumroadVerify(d.licenseKey, false);
+    return res.status === 200 && res.body.success === true;
   } catch {
     return true; // offline — trust cached
   }
 }
 
 function getStatus() {
-  const d       = read();
-  const elapsed = trialDaysElapsed();
+  const d        = read();
+  const elapsed  = trialDaysElapsed();
   const daysLeft = Math.max(0, TRIAL_DAYS - elapsed);
 
   if (d.licenseKey) {
