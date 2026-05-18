@@ -41,6 +41,7 @@ function startRelay() {
   if (relayProcess) return;
   relayProcess = spawn(process.execPath, [path.join(__dirname, 'relay.js')], {
     stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: true,
   });
   relayProcess.stdout.on('data', d => {
     const msg = d.toString().trim();
@@ -65,7 +66,7 @@ function stopRelay() {
 }
 
 function killStale(cb) {
-  try { require('child_process').execSync('taskkill /F /IM ffmpeg.exe 2>nul', { stdio: 'ignore' }); } catch {}
+  try { require('child_process').execSync('taskkill /F /IM ffmpeg.exe', { stdio: 'ignore', windowsHide: true }); } catch {}
   setTimeout(cb, 500);
 }
 

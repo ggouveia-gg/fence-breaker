@@ -262,7 +262,7 @@ class Relay extends EventEmitter {
       '-f', 'flv', url,
     ];
 
-    const proc = spawn(this.ffmpeg, args, { stdio: ['pipe', 'ignore', 'pipe'] });
+    const proc = spawn(this.ffmpeg, args, { stdio: ['pipe', 'ignore', 'pipe'], windowsHide: true });
     state.proc  = proc;
     state.stdin = proc.stdin;
     state.ready = true;
