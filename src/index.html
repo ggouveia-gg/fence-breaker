@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fence Breaker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--bg4:#22222f;
+  --border:#2a2a3a;--accent:#00e5ff;--accent2:#00b4cc;
+  --text:#e8e8f0;--muted:#666680;
+  --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+  --twitch:#9146ff;--youtube:#ff0000;--kick:#53fc18;--fb:#1877f2;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}
+
+/* ── Titlebar ── */
+.titlebar{display:flex;align-items:center;padding:0 16px;height:40px;background:var(--bg2);border-bottom:1px solid var(--border);-webkit-app-region:drag;flex-shrink:0;}
+.tb-logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--accent);}
+.tb-status{display:flex;align-items:center;gap:6px;margin-left:20px;font-size:12px;color:var(--muted);}
+.tb-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+.tb-dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
+.tb-dot.live{background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;-webkit-app-region:no-drag;}
+.tb-timer{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:60px;text-align:right;}
+.tb-dest{font-size:11px;color:var(--muted);padding:2px 8px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);}
+.tb-dest.active{color:var(--accent);border-color:var(--accent2);}
+.tb-btn{width:28px;height:28px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.tb-btn:hover{background:var(--bg3);color:var(--text);}
+.tb-btn.close:hover{background:#ef4444;color:#fff;}
+
+/* ── Layout ── */
+.layout{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:180px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px 0;flex-shrink:0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s;}
+.nav-item:hover{color:var(--text);background:var(--bg3);}
+.nav-item.active{color:var(--accent);background:rgba(0,229,255,.06);border-left:2px solid var(--accent);}
+.nav-spacer{flex:1;}
+.nav-ver{padding:12px 16px;font-size:10px;color:var(--muted);}
+.content{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+
+/* ── Dashboard ── */
+.dashboard{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px;}
+.dest-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:28px;}
+.dest-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid transparent;opacity:.35;}
+.dest-badge.active{opacity:1;}
+.dest-badge.twitch{background:rgba(145,70,255,.15);border-color:var(--twitch);color:var(--twitch);}
+.dest-badge.youtube{background:rgba(255,0,0,.12);border-color:var(--youtube);color:var(--youtube);}
+.dest-badge.kick{background:rgba(83,252,24,.1);border-color:var(--kick);color:var(--kick);}
+.dest-badge.facebook{background:rgba(24,119,242,.12);border-color:var(--fb);color:var(--fb);}
+.dest-badge.custom{background:rgba(0,229,255,.1);border-color:var(--accent);color:var(--accent);}
+.mode-tabs{display:flex;background:var(--bg3);border-radius:8px;padding:3px;gap:2px;}
+.mode-tab{padding:6px 20px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:.15s;border:none;background:transparent;}
+.mode-tab.active{background:var(--bg4);color:var(--text);}
+.delay-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;text-align:center;}
+.delay-number{font-size:96px;font-weight:800;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-4px;text-shadow:0 0 40px rgba(0,229,255,.3);}
+.delay-unit{font-size:28px;font-weight:400;color:var(--muted);vertical-align:super;margin-left:4px;}
+.presets{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.pb{padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:.15s;min-width:70px;text-align:center;}
+.pb:hover{border-color:var(--accent);color:var(--accent);}
+.pb.active{background:rgba(0,229,255,.12);border-color:var(--accent);color:var(--accent);}
+.pb-sub{font-size:10px;color:var(--muted);display:block;margin-top:2px;font-weight:400;}
+.pb.active .pb-sub{color:var(--accent2);}
+.custom-row{display:flex;gap:8px;align-items:center;}
+.custom-inp{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;width:140px;outline:none;}
+.custom-inp:focus{border-color:var(--accent);}
+.custom-inp::placeholder{color:var(--muted);}
+.set-btn{padding:10px 20px;border-radius:8px;border:none;background:var(--accent);color:#000;font-size:13px;font-weight:700;cursor:pointer;}
+.set-btn:hover{background:var(--accent2);}
+.no-dest-hint{font-size:12px;color:var(--muted);text-align:center;padding:8px 16px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;}
+
+/* ── Setup ── */
+.setup-page{padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.setup-section-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.setup-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.setup-step{display:flex;gap:12px;}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#000;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-title{font-size:13px;font-weight:600;margin-bottom:6px;}
+.step-desc{font-size:11px;color:var(--muted);line-height:1.5;}
+.copy-row{display:flex;gap:6px;margin-top:8px;}
+.copy-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;color:var(--accent);font-size:11px;font-family:monospace;outline:none;}
+.copy-btn{padding:8px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg4);color:var(--text);font-size:11px;cursor:pointer;}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── Platform cards (multi-select) ── */
+.plat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;}
+.plat-card{background:var(--bg3);border:2px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:.15s;position:relative;}
+.plat-card:hover{border-color:#4a4a6a;}
+.plat-card.enabled{border-color:var(--plat-color);background:rgba(var(--plat-rgb),.06);}
+.plat-toggle{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;}
+.plat-name{font-size:12px;font-weight:700;color:var(--muted);}
+.plat-card.enabled .plat-name{color:var(--plat-color);}
+.toggle-pill{width:32px;height:18px;border-radius:9px;background:var(--bg4);border:1px solid var(--border);position:relative;transition:.2s;flex-shrink:0;}
+.toggle-pill::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:var(--muted);top:2px;left:2px;transition:.2s;}
+.plat-card.enabled .toggle-pill{background:var(--plat-color);border-color:var(--plat-color);}
+.plat-card.enabled .toggle-pill::after{background:#000;left:16px;}
+.plat-key-row{margin-top:10px;display:none;}
+.plat-card.enabled .plat-key-row{display:flex;gap:6px;}
+.plat-key-inp{flex:1;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:11px;outline:none;}
+.plat-key-inp:focus{border-color:var(--plat-color);}
+.plat-key-inp::placeholder{color:var(--muted);}
+.plat-save-btn{padding:7px 12px;border-radius:6px;border:none;background:var(--plat-color);color:#000;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.active-count{font-size:11px;color:var(--muted);margin-top:4px;}
+.active-count span{color:var(--green);font-weight:700;}
+
+/* Twitch */
+#pc-twitch{--plat-color:var(--twitch);--plat-rgb:145,70,255;}
+/* YouTube */
+#pc-youtube{--plat-color:var(--youtube);--plat-rgb:255,0,0;}
+/* Kick */
+#pc-kick{--plat-color:var(--kick);--plat-rgb:83,252,24;}
+/* Facebook */
+#pc-facebook{--plat-color:var(--fb);--plat-rgb:24,119,242;}
+/* Custom */
+#pc-custom{--plat-color:var(--accent);--plat-rgb:0,229,255;grid-column:span 2;}
+
+/* ── Go Live countdown overlay ── */
+.golive-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:2000;flex-direction:column;gap:16px;}
+.golive-overlay.open{display:flex;}
+.golive-ring{width:160px;height:160px;position:relative;display:flex;align-items:center;justify-content:center;}
+.golive-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+.golive-ring circle{fill:none;stroke-width:6;}
+.golive-ring .ring-bg{stroke:#1a1a24;}
+.golive-ring .ring-fill{stroke:var(--green);stroke-linecap:round;transition:stroke-dashoffset .9s linear;}
+.golive-num{font-size:72px;font-weight:900;color:var(--green);font-variant-numeric:tabular-nums;line-height:1;}
+.golive-label{font-size:13px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.golive-cancel{padding:10px 28px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;}
+.golive-cancel:hover{border-color:var(--red);color:var(--red);}
+
+/* ── Go Live button group ── */
+.golive-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;}
+.btn-golive{padding:12px 28px;border-radius:10px;border:none;background:var(--green);color:#08130b;font-size:14px;font-weight:800;cursor:pointer;transition:.15s;letter-spacing:.03em;}
+.btn-golive:hover{filter:brightness(1.1);}
+.btn-golive:disabled{opacity:.4;cursor:default;}
+.cd-select{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;cursor:pointer;outline:none;}
+.cd-select:focus{border-color:var(--accent);}
+/* ── Delay controls ── */
+.delay-controls{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;}
+.delay-stepper{display:flex;align-items:center;gap:12px;}
+.step-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:20px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;}
+.step-btn:hover{border-color:var(--accent);color:var(--accent);}
+.step-btn.big{width:36px;height:36px;font-size:15px;}
+.stepper-steps{display:flex;gap:6px;}
+.step-chip{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:11px;cursor:pointer;transition:.15s;}
+.step-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.08);}
+.step-chip:hover{border-color:var(--accent2);color:var(--accent2);}
+.delay-slider-row{display:flex;align-items:center;gap:10px;width:100%;max-width:480px;}
+.delay-slider{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--bg4);outline:none;cursor:pointer;}
+.delay-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(0,229,255,.4);}
+.slider-label{font-size:10px;color:var(--muted);min-width:28px;text-align:center;}
+.preset-section{width:100%;}
+.preset-section-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;text-align:center;}
+.preset-grid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+.pb{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;text-align:center;min-width:56px;position:relative;}
+.pb:hover{border-color:var(--accent);color:var(--accent);}
+.pb.active{background:rgba(0,229,255,.12);border-color:var(--accent);color:var(--accent);}
+.pb-val{display:block;font-size:15px;font-weight:800;}
+.pb-lbl{display:block;font-size:9px;color:var(--muted);margin-top:1px;}
+.pb.active .pb-lbl{color:var(--accent2);}
+.pb-edit-dot{position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--border);}
+.pb:hover .pb-edit-dot{background:var(--accent);}
+/* preset edit modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;width:260px;}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--text);}
+.modal label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;}
+.modal input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:12px;}
+.modal input:focus{border-color:var(--accent);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:4px;}
+.modal-btns button{padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;}
+.modal-btns .btn-cancel{background:var(--bg3);color:var(--muted);}
+.modal-btns .btn-save{background:var(--accent);color:#000;}
+/* ── Per-platform status dot ── */
+.plat-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:transparent;margin-left:6px;vertical-align:middle;transition:.3s;}
+.plat-dot.err{background:var(--red);box-shadow:0 0 5px var(--red);}
+.plat-dot.ok{background:var(--green);box-shadow:0 0 5px var(--green);}
+.plat-hint{font-size:10px;color:var(--yellow);margin-top:6px;display:none;line-height:1.4;}
+.plat-card .plat-hint.show{display:block;}
+/* ── Log ── */
+.log-area{padding:12px 16px;height:100%;overflow-y:auto;}
+.le{font-size:11px;padding:4px 0;display:flex;gap:8px;border-bottom:1px solid #1a1a24;}
+.lt{color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums;}
+.lok{color:var(--green);}
+.lerr{color:var(--red);}
+.lwarn{color:var(--yellow);}
+
+/* ── License / Update banners ── */
+.lic-banner{display:none;align-items:center;gap:10px;padding:0 16px;height:34px;font-size:11px;flex-shrink:0;}
+.lic-banner.show{display:flex;}
+.lic-banner.trial{background:#1a1400;border-bottom:1px solid #f59e0b44;color:var(--yellow);}
+.lic-banner.expired{background:#1a0000;border-bottom:1px solid #ef444444;color:var(--red);}
+.lic-banner.update{background:#001a1a;border-bottom:1px solid #00e5ff44;color:var(--accent);}
+.lic-banner .lb-msg{flex:1;}
+.lic-banner .lb-btn{padding:3px 12px;border-radius:5px;border:none;font-size:11px;font-weight:700;cursor:pointer;}
+.lic-banner.trial  .lb-btn{background:var(--yellow);color:#000;}
+.lic-banner.expired .lb-btn{background:var(--red);color:#fff;}
+.lic-banner.update .lb-btn{background:var(--accent);color:#000;}
+.lic-banner .lb-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;}
+/* ── Toast ── */
+#toast{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:999;}
+.ti{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12px;transition:opacity .3s;}
+.ti.ok  {background:#22c55e22;border:1px solid #22c55e44;color:#22c55e;}
+.ti.err {background:#ef444422;border:1px solid #ef444444;color:#ef4444;}
+.ti.warn{background:#f59e0b22;border:1px solid #f59e0b44;color:#f59e0b;}
+</style>
+</head>
+<body>
+
+<!-- Titlebar -->
+<div class="titlebar">
+  <div class="tb-logo">⚡ Fence Breaker</div>
+  <div class="tb-status">
+    <div class="tb-dot" id="sdot"></div>
+    <span id="slbl">Disconnected</span>
+  </div>
+  <div class="tb-right">
+    <div class="tb-dest" id="tb-dest">no destinations</div>
+    <span class="tb-timer" id="timer">00:00:00</span>
+    <button class="tb-btn" onclick="win('minimize')">─</button>
+    <button class="tb-btn" onclick="win('maximize')">□</button>
+    <button class="tb-btn close" onclick="win('close')">✕</button>
+  </div>
+</div>
+
+<!-- License banner (trial / expired) -->
+<div class="lic-banner trial" id="banner-trial">
+  <span class="lb-msg" id="banner-trial-msg">⏳ Trial: <b id="trial-days-left">7</b> days remaining</span>
+  <button class="lb-btn" onclick="window.api?.openBuyPage()">Upgrade to Pro</button>
+</div>
+<div class="lic-banner expired" id="banner-expired">
+  <span class="lb-msg">⚠ Trial expired — limited to 1 destination &amp; 60s delay</span>
+  <button class="lb-btn" onclick="window.api?.openBuyPage()">Activate License</button>
+</div>
+
+<!-- Update banner -->
+<div class="lic-banner update" id="banner-update">
+  <span class="lb-msg">⬆ FenceBreaker <b id="update-version"></b> is available</span>
+  <button class="lb-btn" onclick="doUpdate()">Update now</button>
+  <button class="lb-close" onclick="document.getElementById('banner-update').classList.remove('show')" title="Later">✕</button>
+</div>
+
+<!-- Layout -->
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">📊 Dashboard</div>
+    <div class="nav-item" id="nav-setup"     onclick="showPage('setup')">⚙ Settings</div>
+    <div class="nav-item" id="nav-log"       onclick="showPage('log')">📋 Log</div>
+    <div class="nav-spacer"></div>
+    <div class="nav-ver">v6.0.0</div>
+  </div>
+
+  <div class="content">
+
+    <!-- Dashboard -->
+    <div id="page-dashboard" class="dashboard">
+
+      <div class="dest-badges">
+        <div class="dest-badge twitch"   id="badge-twitch">Twitch</div>
+        <div class="dest-badge youtube"  id="badge-youtube">YouTube</div>
+        <div class="dest-badge kick"     id="badge-kick">Kick</div>
+        <div class="dest-badge facebook" id="badge-facebook">Facebook</div>
+        <div class="dest-badge custom"   id="badge-custom">Custom</div>
+      </div>
+
+      <!-- Big delay number -->
+      <div>
+        <div class="delay-label">STREAM DELAY</div>
+        <div><span class="delay-number" id="delay-num">0</span><span class="delay-unit">s</span></div>
+      </div>
+
+      <div class="delay-controls">
+
+        <!-- Stepper: − [step size chips] + -->
+        <div class="delay-stepper">
+          <button class="step-btn" onclick="stepDelay(-1)" title="−step">−</button>
+          <div class="stepper-steps">
+            <div class="step-chip active" id="step-1"  onclick="selectStep(1)">1s</div>
+            <div class="step-chip"        id="step-5"  onclick="selectStep(5)">5s</div>
+            <div class="step-chip"        id="step-10" onclick="selectStep(10)">10s</div>
+            <div class="step-chip"        id="step-30" onclick="selectStep(30)">30s</div>
+            <div class="step-chip"        id="step-60" onclick="selectStep(60)">60s</div>
+          </div>
+          <button class="step-btn" onclick="stepDelay(1)" title="+step">+</button>
+        </div>
+
+        <!-- Slider 0 – 600s -->
+        <div class="delay-slider-row">
+          <span class="slider-label">0s</span>
+          <input class="delay-slider" id="delay-slider" type="range" min="0" max="600" value="0"
+                 oninput="onSlider(this.value)" onchange="applySlider(this.value)">
+          <span class="slider-label">600s</span>
+        </div>
+
+        <!-- Presets (user-configurable) -->
+        <div class="preset-section">
+          <div class="preset-section-title">Presets — double-click to edit</div>
+          <div class="preset-grid" id="preset-grid"></div>
+        </div>
+
+        <!-- Direct input -->
+        <div class="delay-stepper" style="gap:8px">
+          <input id="direct-val" type="number" min="0" max="600" placeholder="any seconds…"
+                 style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+                        padding:9px 14px;color:var(--text);font-size:13px;outline:none;width:160px;"
+                 onkeydown="if(event.key==='Enter')applyDirect()">
+          <button class="set-btn" onclick="applyDirect()">Set</button>
+        </div>
+
+      </div>
+
+      <!-- Go Live row -->
+      <div class="golive-row">
+        <select class="cd-select" id="cd-time">
+          <option value="3">3s countdown</option>
+          <option value="5" selected>5s countdown</option>
+          <option value="10">10s countdown</option>
+          <option value="30">30s countdown</option>
+          <option value="0">Instant</option>
+        </select>
+        <button class="btn-golive" id="btn-golive" onclick="startGoLive()">⚡ Go Live</button>
+      </div>
+
+      <div id="no-dest-hint" class="no-dest-hint" style="display:none">
+        ⚠ No destinations configured — go to <b>Settings</b> and enable at least one platform.
+      </div>
+    </div>
+
+    <!-- Go Live countdown overlay -->
+    <div class="golive-overlay" id="golive-overlay">
+      <div class="golive-ring">
+        <svg viewBox="0 0 160 160" width="160" height="160">
+          <circle class="ring-bg" cx="80" cy="80" r="70"/>
+          <circle class="ring-fill" id="ring-fill" cx="80" cy="80" r="70"
+                  stroke-dasharray="439.8" stroke-dashoffset="0"/>
+        </svg>
+        <span class="golive-num" id="golive-num">5</span>
+      </div>
+      <div class="golive-label">Going live in…</div>
+      <button class="golive-cancel" onclick="cancelGoLive()">Cancel</button>
+    </div>
+
+    <!-- Preset edit modal -->
+    <div class="modal-overlay" id="preset-modal">
+      <div class="modal">
+        <h3>Edit Preset</h3>
+        <label>Delay (seconds)</label>
+        <input id="modal-val" type="number" min="0" max="600" placeholder="30">
+        <label>Label (optional)</label>
+        <input id="modal-lbl" type="text" maxlength="10" placeholder="ANTI-SNIPE">
+        <div class="modal-btns">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-save"   onclick="savePreset()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="page-setup" class="setup-page" style="display:none">
+
+      <div>
+        <div class="setup-section-title">Step 1 — Destinations</div>
+        <div class="setup-card">
+          <div class="step-desc" style="margin-bottom:12px">
+            Enable one or more platforms. Paste each stream key and click Save.
+            Active destinations receive the stream simultaneously.
+          </div>
+          <div class="active-count" id="active-count">
+            <span id="active-n">0</span> destination(s) active
+          </div>
+          <div class="plat-grid" style="margin-top:10px">
+
+            <!-- Twitch -->
+            <div class="plat-card" id="pc-twitch" onclick="togglePlat(event,'twitch')">
+              <div class="plat-toggle">
+                <div class="plat-name">🟣 Twitch<span class="plat-dot" id="pd-twitch"></span></div>
+                <div class="toggle-pill"></div>
+              </div>
+              <div class="plat-key-row" onclick="stopProp(event)">
+                <input class="plat-key-inp" id="pi-twitch" placeholder="Stream key"
+                       oninput="onKeyInput('twitch')">
+                <button class="plat-save-btn" onclick="saveKey('twitch')">Save</button>
+              </div>
+            </div>
+
+            <!-- YouTube -->
+            <div class="plat-card" id="pc-youtube" onclick="togglePlat(event,'youtube')">
+              <div class="plat-toggle">
+                <div class="plat-name">🔴 YouTube<span class="plat-dot" id="pd-youtube"></span></div>
+                <div class="toggle-pill"></div>
+              </div>
+              <div class="plat-key-row" onclick="stopProp(event)">
+                <input class="plat-key-inp" id="pi-youtube" placeholder="Stream key"
+                       oninput="onKeyInput('youtube')">
+                <button class="plat-save-btn" onclick="saveKey('youtube')">Save</button>
+              </div>
+              <div class="plat-hint" id="ph-youtube">
+                ⚠ Connection failed. Go to <b>studio.youtube.com → Go Live</b>, create or resume a stream, and paste the new key above.
+              </div>
+            </div>
+
+            <!-- Kick -->
+            <div class="plat-card" id="pc-kick" onclick="togglePlat(event,'kick')">
+              <div class="plat-toggle">
+                <div class="plat-name">⚡ Kick<span class="plat-dot" id="pd-kick"></span></div>
+                <div class="toggle-pill"></div>
+              </div>
+              <div class="plat-key-row" onclick="stopProp(event)">
+                <input class="plat-key-inp" id="pi-kick" placeholder="Stream key"
+                       oninput="onKeyInput('kick')">
+                <button class="plat-save-btn" onclick="saveKey('kick')">Save</button>
+              </div>
+            </div>
+
+            <!-- Facebook -->
+            <div class="plat-card" id="pc-facebook" onclick="togglePlat(event,'facebook')">
+              <div class="plat-toggle">
+                <div class="plat-name">📘 Facebook<span class="plat-dot" id="pd-facebook"></span></div>
+                <div class="toggle-pill"></div>
+              </div>
+              <div class="plat-key-row" onclick="stopProp(event)">
+                <input class="plat-key-inp" id="pi-facebook" placeholder="Stream key"
+                       oninput="onKeyInput('facebook')">
+                <button class="plat-save-btn" onclick="saveKey('facebook')">Save</button>
+              </div>
+            </div>
+
+            <!-- Custom -->
+            <div class="plat-card" id="pc-custom" onclick="togglePlat(event,'custom')">
+              <div class="plat-toggle">
+                <div class="plat-name">🔗 Custom RTMP<span class="plat-dot" id="pd-custom"></span></div>
+                <div class="toggle-pill"></div>
+              </div>
+              <div class="plat-key-row" onclick="stopProp(event)">
+                <input class="plat-key-inp" id="pi-custom" placeholder="rtmp://your.server/live/key"
+                       oninput="onKeyInput('custom')">
+                <button class="plat-save-btn" onclick="saveKey('custom')">Save</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="setup-section-title">Step 2 — OBS</div>
+        <div class="setup-card">
+          <div class="setup-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-title">OBS → Settings → Stream → Custom</div>
+              <div class="step-desc">Set <b>Server</b> to the URL below. Set <b>Stream key</b> to any text (e.g. <code>stream</code>).</div>
+              <div class="copy-row">
+                <input class="copy-inp" value="rtmp://127.0.0.1:1935/live/stream" readonly>
+                <button class="copy-btn" onclick="copyUrl()">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="setup-section-title">Step 3 — Stream</div>
+        <div class="setup-card">
+          <div class="setup-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-title">Start streaming in OBS</div>
+              <div class="step-desc">
+                Fence Breaker receives the stream, applies the selected delay, and delivers it to
+                all enabled platforms at the same time. If one platform drops, the others keep running.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Log -->
+    <div id="page-log" style="display:none;height:100%;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <span style="font-size:11px;color:var(--muted);flex:1;" id="log-path-lbl">—</span>
+        <button onclick="copyLogPath()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:11px;cursor:pointer;">📋 Copy path</button>
+        <button onclick="window.api?.openLogFolder()" style="padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:11px;cursor:pointer;">📂 Open folder</button>
+      </div>
+      <div class="log-area" id="loglist" style="flex:1;"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── License state ─────────────────────────────────────────────────────────────
+let licenseExpired = false; // true when trial expired and no license
+
+function applyLicenseStatus(status) {
+  licenseExpired = !status.licensed && status.trialExpired;
+
+  document.getElementById('banner-trial').classList.toggle('show',
+    !status.licensed && !status.trialExpired && status.daysLeft > 0);
+  document.getElementById('trial-days-left').textContent = status.daysLeft || 0;
+
+  document.getElementById('banner-expired').classList.toggle('show',
+    !status.licensed && status.trialExpired);
+
+  // Degraded mode: cap delay slider at 60s
+  const slider = document.getElementById('delay-slider');
+  if (slider) slider.max = licenseExpired ? '60' : '600';
+}
+
+window.api?.onLicenseStatus(applyLicenseStatus);
+window.api?.onUpdateAvailable(data => {
+  document.getElementById('update-version').textContent = data.version;
+  document.getElementById('banner-update')._updateUrl = data.url;
+  document.getElementById('banner-update').classList.add('show');
+});
+
+function doUpdate() {
+  const url = document.getElementById('banner-update')._updateUrl;
+  window.api?.openUpdatePage(url);
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const PLATFORMS = ['twitch','youtube','kick','facebook','custom'];
+let curDelay    = 0;
+let delayBusy   = false;
+let stepSize    = 1;
+let editingPresetIdx = -1;
+let enabled = {};
+let keys    = {};
+
+// Default presets — user can edit all of them
+const DEFAULT_PRESETS = [
+  { val: 0,   lbl: 'LIVE'       },
+  { val: 5,   lbl: 'QUICK'      },
+  { val: 10,  lbl: ''           },
+  { val: 15,  lbl: ''           },
+  { val: 20,  lbl: ''           },
+  { val: 30,  lbl: 'MEDIUM'     },
+  { val: 45,  lbl: ''           },
+  { val: 60,  lbl: 'LONG'       },
+  { val: 90,  lbl: ''           },
+  { val: 120, lbl: '2 MIN'      },
+  { val: 180, lbl: '3 MIN'      },
+  { val: 300, lbl: '5 MIN'      },
+];
+
+function loadPresets() {
+  try {
+    const saved = localStorage.getItem('fb_presets');
+    return saved ? JSON.parse(saved) : DEFAULT_PRESETS;
+  } catch { return DEFAULT_PRESETS; }
+}
+
+function savePresets(presets) {
+  localStorage.setItem('fb_presets', JSON.stringify(presets));
+}
+
+function renderPresets() {
+  const presets = loadPresets();
+  const grid    = document.getElementById('preset-grid');
+  grid.innerHTML = '';
+  presets.forEach((p, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'pb' + (p.val === curDelay ? ' active' : '');
+    btn.title     = 'Click: set delay  |  Double-click: edit';
+    btn.innerHTML = `<span class="pb-val">${p.val}s</span>
+                     <span class="pb-lbl">${p.lbl || '&nbsp;'}</span>
+                     <span class="pb-edit-dot"></span>`;
+    btn.addEventListener('click',    () => setDelay(p.val));
+    btn.addEventListener('dblclick', (e) => { e.stopPropagation(); openModal(i); });
+    grid.appendChild(btn);
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  loadSavedConfig();
+  refreshActiveBadges();
+  renderPresets();
+  // Load current license status
+  const status = await window.api?.getLicenseStatus();
+  if (status) applyLicenseStatus(status);
+});
+
+// ── API events ───────────────────────────────────────────────────────────────
+window.api?.onStreamEvent(data => {
+  if (data.type === 'connected') {
+    document.getElementById('sdot').className = 'tb-dot on';
+    document.getElementById('slbl').textContent = 'OBS Connected';
+    log('ok', 'OBS connected to Fence Breaker');
+    toast('ok', 'OBS connected!');
+  } else if (data.type === 'relaying') {
+    document.getElementById('sdot').className = 'tb-dot live';
+    document.getElementById('slbl').textContent = 'Live';
+    const names = PLATFORMS.filter(p => enabled[p] && keys[p]).join(', ');
+    log('ok', 'Streaming → ' + (names || 'destinations'));
+    toast('ok', 'Stream active!');
+  } else if (data.type === 'disconnected') {
+    document.getElementById('sdot').className = 'tb-dot';
+    document.getElementById('slbl').textContent = 'Disconnected';
+    log('warn', 'OBS disconnected');
+    document.getElementById('timer').textContent = '00:00:00';
+  }
+});
+
+window.api?.onDelayUpdated(data => {
+  curDelay = data.seconds;
+  updateDelayDisplay(data.seconds);
+});
+
+window.api?.onDestinationsUpdated(data => {
+  updateTitlebarDest(data.names);
+});
+
+window.api?.onFbLog(data => { log(data.type, data.msg); });
+
+window.api?.onDestinationError(data => {
+  const p = data.platform;
+  if (p) {
+    const dot  = document.getElementById('pd-' + p);
+    const hint = document.getElementById('ph-' + p);
+    if (dot)  { dot.className = 'plat-dot err'; }
+    if (hint) { hint.classList.add('show'); }
+  }
+  const name = p ? p.charAt(0).toUpperCase() + p.slice(1) : 'Destination';
+  log('warn', `${name} connection failed — check stream key / active live event`);
+  toast('err', `${name} failed!`);
+});
+
+window.api?.onTimerUpdate(data => {
+  const s = data.uptime;
+  const h = String(Math.floor(s/3600)).padStart(2,'0');
+  const m = String(Math.floor((s%3600)/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  document.getElementById('timer').textContent = h+':'+m+':'+ss;
+});
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(p) {
+  PLATFORMS; // keep ref
+  ['dashboard','setup','log'].forEach(x => {
+    document.getElementById('page-'+x).style.display = 'none';
+    document.getElementById('nav-'+x)?.classList.remove('active');
+  });
+  const el = document.getElementById('page-'+p);
+  el.style.display = p === 'dashboard' ? 'flex' : (p === 'log' ? 'block' : 'block');
+  document.getElementById('nav-'+p)?.classList.add('active');
+}
+
+// ── Delay ─────────────────────────────────────────────────────────────────────
+async function setDelay(s) {
+  if (licenseExpired) s = Math.min(s, 60); // degraded: max 60s
+  s = Math.max(0, Math.min(600, Math.round(s)));
+  if (delayBusy) return;
+  delayBusy = true;
+  const r = await window.api?.setDelay({ seconds: s });
+  if (r?.ok) {
+    curDelay = s;
+    updateDelayDisplay(s);
+    toast('ok', s===0 ? '⚡ Live!' : 'Delay: '+s+'s');
+    log('ok', s===0 ? 'Going live (0s delay)' : 'Delay set to '+s+'s');
+  } else {
+    toast('err', 'Failed to set delay');
+  }
+  setTimeout(() => { delayBusy = false; }, 500);
+}
+
+// Stepper
+function selectStep(s) {
+  stepSize = s;
+  ['1','5','10','30','60'].forEach(v =>
+    document.getElementById('step-'+v)?.classList.toggle('active', parseInt(v)===s)
+  );
+}
+
+function stepDelay(dir) {
+  setDelay(curDelay + dir * stepSize);
+}
+
+// Slider (live preview while dragging, apply on release)
+function onSlider(v) {
+  document.getElementById('delay-num').textContent = v;
+}
+function applySlider(v) {
+  setDelay(parseInt(v));
+}
+
+// Direct input
+function applyDirect() {
+  const v = parseInt(document.getElementById('direct-val').value);
+  if (isNaN(v) || v < 0) { toast('err', 'Invalid value'); return; }
+  setDelay(v);
+  document.getElementById('direct-val').value = '';
+}
+
+function updateDelayDisplay(s) {
+  document.getElementById('delay-num').textContent = s;
+  document.getElementById('delay-slider').value = Math.min(s, 600);
+  renderPresets(); // refresh active state on preset buttons
+}
+
+// ── Preset modal ──────────────────────────────────────────────────────────────
+function openModal(idx) {
+  const presets = loadPresets();
+  editingPresetIdx = idx;
+  document.getElementById('modal-val').value = presets[idx].val;
+  document.getElementById('modal-lbl').value = presets[idx].lbl || '';
+  document.getElementById('preset-modal').classList.add('open');
+  document.getElementById('modal-val').focus();
+}
+
+function closeModal() {
+  document.getElementById('preset-modal').classList.remove('open');
+  editingPresetIdx = -1;
+}
+
+function savePreset() {
+  if (editingPresetIdx < 0) return;
+  const val = parseInt(document.getElementById('modal-val').value);
+  const lbl = document.getElementById('modal-lbl').value.trim().toUpperCase();
+  if (isNaN(val) || val < 0) { toast('err','Invalid seconds'); return; }
+  const presets = loadPresets();
+  presets[editingPresetIdx] = { val: Math.min(val, 600), lbl };
+  savePresets(presets);
+  renderPresets();
+  closeModal();
+  toast('ok', 'Preset saved');
+}
+
+// Close modal on overlay click
+document.getElementById('preset-modal')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('preset-modal')) closeModal();
+});
+
+// Keyboard shortcut: Escape closes modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── Platform cards ────────────────────────────────────────────────────────────
+function stopProp(e) { e.stopPropagation(); }
+
+function togglePlat(e, p) {
+  // ignore clicks on inputs / buttons
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+  const isNowEnabled = !enabled[p];
+  enabled[p] = isNowEnabled;
+  localStorage.setItem('fb_enabled_'+p, isNowEnabled ? '1' : '0');
+  document.getElementById('pc-'+p).classList.toggle('enabled', isNowEnabled);
+  refreshActiveBadges();
+  refreshActiveCount();
+  updateNoDestHint();
+  if (isNowEnabled) {
+    // focus key input when just enabled
+    setTimeout(() => document.getElementById('pi-'+p)?.focus(), 50);
+  }
+  pushDestinations();
+}
+
+function onKeyInput(p) {
+  keys[p] = document.getElementById('pi-'+p)?.value || '';
+}
+
+async function saveKey(p) {
+  const k = document.getElementById('pi-'+p)?.value?.trim() || '';
+  if (!k) { toast('err','Stream key is empty'); return; }
+  keys[p] = k;
+  localStorage.setItem('fb_key_'+p, k);
+  // Reset error state on key change
+  const dot  = document.getElementById('pd-' + p);
+  const hint = document.getElementById('ph-' + p);
+  if (dot)  dot.className = 'plat-dot';
+  if (hint) hint.classList.remove('show');
+  if (enabled[p]) {
+    await pushDestinations();
+    toast('ok', 'Saved!');
+    log('ok', p + ' key saved');
+  } else {
+    toast('ok', 'Key saved (enable platform to stream)');
+  }
+}
+
+async function pushDestinations() {
+  let list = PLATFORMS
+    .filter(p => enabled[p] && keys[p])
+    .map(p => ({ platform: p, key: keys[p] }));
+  if (licenseExpired && list.length > 1) list = [list[0]]; // degraded: max 1 dest
+  await window.api?.setDestinations(list);
+  updateTitlebarDest(list.map(d => d.platform));
+}
+
+function refreshActiveBadges() {
+  PLATFORMS.forEach(p => {
+    const badge = document.getElementById('badge-'+p);
+    if (badge) badge.classList.toggle('active', !!(enabled[p] && keys[p]));
+  });
+}
+
+function refreshActiveCount() {
+  const n = PLATFORMS.filter(p => enabled[p] && keys[p]).length;
+  document.getElementById('active-n').textContent = n;
+}
+
+function updateNoDestHint() {
+  const any = PLATFORMS.some(p => enabled[p] && keys[p]);
+  document.getElementById('no-dest-hint').style.display = any ? 'none' : 'block';
+}
+
+function updateTitlebarDest(names) {
+  const el = document.getElementById('tb-dest');
+  if (!names || names.length === 0) {
+    el.textContent = 'no destinations';
+    el.classList.remove('active');
+  } else {
+    el.textContent = names.join(' + ');
+    el.classList.add('active');
+  }
+}
+
+// ── Config persistence ────────────────────────────────────────────────────────
+function loadSavedConfig() {
+  PLATFORMS.forEach(p => {
+    const en  = localStorage.getItem('fb_enabled_'+p) === '1';
+    const key = localStorage.getItem('fb_key_'+p) || '';
+    enabled[p] = en;
+    keys[p]    = key;
+    const card = document.getElementById('pc-'+p);
+    const inp  = document.getElementById('pi-'+p);
+    if (card) card.classList.toggle('enabled', en);
+    if (inp && key) inp.value = key;
+  });
+  refreshActiveBadges();
+  refreshActiveCount();
+  updateNoDestHint();
+  // Send saved destinations to backend after a short delay
+  setTimeout(() => pushDestinations(), 600);
+}
+
+// ── Go Live countdown ─────────────────────────────────────────────────────────
+let cdInterval = null;
+let cdRemaining = 0;
+const CIRCUMFERENCE = 2 * Math.PI * 70; // 439.8
+
+function startGoLive() {
+  const secs = parseInt(document.getElementById('cd-time').value);
+  if (secs === 0) {
+    // Instant — just apply delay 0 right away
+    setDelay(0);
+    toast('ok', '⚡ Live!');
+    return;
+  }
+  cdRemaining = secs;
+  showCountdown(secs, secs);
+  document.getElementById('golive-overlay').classList.add('open');
+  document.getElementById('btn-golive').disabled = true;
+
+  cdInterval = setInterval(() => {
+    cdRemaining--;
+    showCountdown(cdRemaining, secs);
+    if (cdRemaining <= 0) {
+      finishGoLive();
+    }
+  }, 1000);
+}
+
+function showCountdown(remaining, total) {
+  document.getElementById('golive-num').textContent = Math.max(0, remaining);
+  const pct = remaining / total;
+  const offset = CIRCUMFERENCE * (1 - pct);
+  document.getElementById('ring-fill').style.strokeDashoffset = offset;
+}
+
+function finishGoLive() {
+  clearInterval(cdInterval);
+  cdInterval = null;
+  document.getElementById('golive-overlay').classList.remove('open');
+  document.getElementById('btn-golive').disabled = false;
+  setDelay(0);
+  toast('ok', '⚡ Live!');
+  log('ok', 'Countdown complete — going live');
+}
+
+function cancelGoLive() {
+  clearInterval(cdInterval);
+  cdInterval = null;
+  document.getElementById('golive-overlay').classList.remove('open');
+  document.getElementById('btn-golive').disabled = false;
+  toast('warn', 'Cancelled');
+  log('warn', 'Go live cancelled');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function copyUrl() {
+  navigator.clipboard.writeText('rtmp://127.0.0.1:1935/live/stream')
+    .then(() => toast('ok','URL copied!'));
+}
+
+function win(a) {
+  if (a==='minimize') window.api?.windowMinimize();
+  if (a==='maximize') window.api?.windowMaximize();
+  if (a==='close')    window.api?.windowClose();
+}
+
+function toast(type, msg) {
+  const el = document.createElement('div');
+  el.className = 'ti ' + type;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; }, 3000);
+  setTimeout(() => el.remove(), 3400);
+}
+
+async function copyLogPath() {
+  const p = await window.api?.getLogPath();
+  if (p) navigator.clipboard.writeText(p).then(() => toast('ok', 'Path copied!'));
+}
+
+// Load log file path into label when Log page opens
+const _origShowPage = showPage;
+function showPage(p) {
+  _origShowPage(p);
+  if (p === 'log') {
+    window.api?.getLogPath().then(path => {
+      const el = document.getElementById('log-path-lbl');
+      if (el && path) el.textContent = path;
+    });
+  }
+}
+
+function log(type, msg) {
+  const list = document.getElementById('loglist');
+  const el   = document.createElement('div');
+  el.className = 'le';
+  const now = new Date().toTimeString().slice(0,8);
+  el.innerHTML = `<span class="lt">${now}</span><span class="l${type}">${msg}</span>`;
+  list.appendChild(el);
+  list.scrollTop = list.scrollHeight;
+}
+</script>
+</body>
+</html>

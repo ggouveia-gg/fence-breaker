@@ -1,0 +1,8 @@
+node_modules/
+dist/
+core/
+build/fb-core.exe
+build/fb-core.exe~
+build/fence-breaker.dll
+*.log
+.DS_Store

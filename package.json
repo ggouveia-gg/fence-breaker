@@ -1,0 +1,57 @@
+{
+  "name": "fence-breaker",
+  "version": "6.0.0",
+  "description": "Stream delay — never cut your live. Multi-platform: Twitch, YouTube, Kick.",
+  "author": "Fence Breaker <support@fencebreaker.io>",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "node-media-server": "^2.6.2"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "io.fencebreaker.app",
+    "productName": "Fence Breaker",
+    "copyright": "Copyright © 2026 Fence Breaker",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "relay.js",
+      "license.js",
+      "updater.js",
+      "src/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.png",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Fence Breaker",
+      "warningsAsErrors": false
+    },
+    "compression": "maximum",
+    "publish": {
+      "provider": "github",
+      "owner": "ggouveia-gg",
+      "repo": "fence-breaker"
+    }
+  }
+}
