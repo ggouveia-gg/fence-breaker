@@ -2,100 +2,130 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Activate Fence Breaker</title>
+<title>Fence Breaker Pro</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--bg4:#22222f;
-  --border:#2a2a3a;--accent:#00e5ff;--accent2:#00b4cc;
-  --text:#e8e8f0;--muted:#666680;
+  --border:#2a2a3a;--border2:#333348;
+  --accent:#00e5ff;--accent2:#00b4cc;--accent-dim:rgba(0,229,255,.12);
+  --text:#e8e8f0;--muted:#666680;--muted2:#444460;
   --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+  --gold:#f59e0b;
 }
+html,body{height:100%;overflow:hidden;}
 body{
   background:var(--bg);color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  height:100vh;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:28px;gap:0;user-select:none;
-  -webkit-app-region:drag;
+  display:flex;flex-direction:column;
+  user-select:none;-webkit-app-region:drag;
 }
+
+/* Titlebar */
 .titlebar{
-  position:fixed;top:0;left:0;right:0;height:32px;
+  height:36px;flex-shrink:0;
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 12px;background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 14px;background:var(--bg2);border-bottom:1px solid var(--border);
   -webkit-app-region:drag;
 }
-.tb-logo{font-size:12px;font-weight:700;color:var(--accent);}
+.tb-logo{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.02em;}
 .tb-close{
-  width:24px;height:24px;border:none;background:transparent;
-  color:var(--muted);cursor:pointer;border-radius:4px;font-size:12px;
+  width:22px;height:22px;border:none;background:transparent;
+  color:var(--muted);cursor:pointer;border-radius:4px;font-size:11px;
   display:flex;align-items:center;justify-content:center;
-  -webkit-app-region:no-drag;
+  -webkit-app-region:no-drag;transition:.15s;
 }
-.tb-close:hover{background:#ef4444;color:#fff;}
-.card{
-  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
-  padding:28px 28px 24px;width:100%;max-width:400px;
-  display:flex;flex-direction:column;gap:18px;
-  -webkit-app-region:no-drag;margin-top:32px;
+.tb-close:hover{background:var(--red);color:#fff;}
+
+/* Scrollable body */
+.body{flex:1;overflow-y:auto;padding:20px 20px 24px;display:flex;flex-direction:column;gap:16px;-webkit-app-region:no-drag;}
+.body::-webkit-scrollbar{width:4px;}
+.body::-webkit-scrollbar-track{background:transparent;}
+.body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* Status badge */
+.status-badge{
+  display:none;align-items:center;justify-content:center;gap:6px;
+  padding:7px 12px;border-radius:8px;font-size:11px;font-weight:600;
 }
-.logo{text-align:center;}
-.logo-title{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-.5px;}
-.logo-sub{font-size:11px;color:var(--muted);margin-top:4px;}
-.trial-badge{
-  text-align:center;padding:8px 0;
-  background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.15);
-  border-radius:8px;font-size:12px;color:var(--accent);
+.status-badge.show{display:flex;}
+.status-badge.trial{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:var(--yellow);}
+.status-badge.expired{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red);}
+
+/* Hero */
+.hero{text-align:center;padding:4px 0 2px;}
+.hero-icon{font-size:28px;margin-bottom:6px;}
+.hero-title{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text);}
+.hero-title span{color:var(--accent);}
+.hero-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+
+/* Pricing */
+.price-block{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+  padding:16px 18px;display:flex;align-items:center;justify-content:space-between;
 }
-.trial-badge span{font-weight:700;}
-.section-label{font-size:11px;color:var(--muted);margin-bottom:6px;display:block;}
+.price-left{}
+.price-amount{font-size:28px;font-weight:800;color:var(--text);letter-spacing:-1px;}
+.price-amount sup{font-size:14px;font-weight:700;vertical-align:top;margin-top:6px;display:inline-block;color:var(--muted);}
+.price-period{font-size:11px;color:var(--muted);margin-top:2px;}
+.price-tag{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green);
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.04em;}
+
+/* Features */
+.features{display:flex;flex-direction:column;gap:7px;}
+.feat{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text);}
+.feat-icon{width:18px;height:18px;border-radius:50%;background:rgba(0,229,255,.1);
+  border:1px solid rgba(0,229,255,.2);display:flex;align-items:center;justify-content:center;
+  font-size:9px;flex-shrink:0;}
+.feat strong{color:var(--accent);}
+.feat-muted{color:var(--muted);font-size:11px;margin-left:auto;}
+
+/* CTA */
+.btn-buy{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#000;font-size:13px;font-weight:800;cursor:pointer;
+  letter-spacing:.02em;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn-buy:hover{opacity:.9;transform:translateY(-1px);}
+.btn-buy:active{transform:translateY(0);}
+
+/* Divider */
+.divider{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:10px;text-transform:uppercase;letter-spacing:.08em;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* License input */
+.section-label{font-size:10px;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.06em;}
+.key-row{display:flex;gap:8px;}
 .key-inp{
-  width:100%;background:var(--bg3);border:1px solid var(--border);
-  border-radius:8px;padding:11px 14px;color:var(--text);
-  font-size:12px;font-family:monospace;outline:none;
-  transition:.15s;letter-spacing:.03em;
+  flex:1;background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;color:var(--text);
+  font-size:11px;font-family:monospace;outline:none;transition:.15s;
 }
 .key-inp:focus{border-color:var(--accent);}
-.key-inp::placeholder{color:var(--muted);font-family:-apple-system,sans-serif;letter-spacing:0;}
+.key-inp::placeholder{color:var(--muted);font-family:-apple-system,sans-serif;}
 .btn-activate{
-  width:100%;padding:12px;border-radius:8px;border:none;
-  background:var(--accent);color:#000;font-size:13px;font-weight:700;
-  cursor:pointer;transition:.15s;
+  padding:0 16px;border-radius:8px;border:1px solid var(--border2);
+  background:var(--bg4);color:var(--text);font-size:12px;font-weight:600;
+  cursor:pointer;transition:.15s;white-space:nowrap;
 }
-.btn-activate:hover{background:var(--accent2);}
-.btn-activate:disabled{opacity:.5;cursor:default;}
-.btn-trial{
-  width:100%;padding:10px;border-radius:8px;
-  border:1px solid var(--border);background:var(--bg3);
-  color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;
-  transition:.15s;
-}
-.btn-trial:hover{border-color:var(--green);color:var(--green);}
-.divider{
-  display:flex;align-items:center;gap:10px;
-  color:var(--muted);font-size:11px;
-}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-activate:hover{border-color:var(--accent);color:var(--accent);}
+.btn-activate:disabled{opacity:.4;cursor:default;}
+
+/* Error / loading */
 .error-msg{
   font-size:11px;color:var(--red);text-align:center;
-  padding:8px;background:rgba(239,68,68,.08);
-  border:1px solid rgba(239,68,68,.2);border-radius:6px;
-  display:none;
+  padding:7px 12px;background:rgba(239,68,68,.07);
+  border:1px solid rgba(239,68,68,.18);border-radius:6px;display:none;
 }
 .error-msg.show{display:block;}
-.buy-link{
-  text-align:center;font-size:11px;color:var(--muted);
-}
-.buy-link a{color:var(--accent);text-decoration:none;font-weight:600;}
-.buy-link a:hover{color:var(--accent2);}
-.loading{display:none;text-align:center;font-size:12px;color:var(--muted);}
-.loading.show{display:block;}
-/* Expired mode */
-.expired-badge{
-  text-align:center;padding:8px 0;
-  background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);
-  border-radius:8px;font-size:12px;color:var(--red);
-}
+.loading-msg{display:none;text-align:center;font-size:11px;color:var(--muted);}
+.loading-msg.show{display:block;}
+
+/* Trial link */
+.trial-row{text-align:center;font-size:11px;color:var(--muted);}
+.trial-row a{color:var(--accent);text-decoration:none;font-weight:600;cursor:pointer;}
+.trial-row a:hover{color:var(--accent2);}
 </style>
 </head>
 <body>
@@ -105,43 +135,86 @@ body{
   <button class="tb-close" onclick="window.api?.windowClose()">✕</button>
 </div>
 
-<div class="card">
-  <div class="logo">
-    <div class="logo-title">⚡ Fence Breaker Pro</div>
-    <div class="logo-sub">Stream delay — never cut your live</div>
+<div class="body">
+
+  <!-- Status badge -->
+  <div class="status-badge trial" id="badge-trial">
+    ⏳ <span><b id="trial-days-left">7</b> days left in your free trial</span>
+  </div>
+  <div class="status-badge expired" id="badge-expired">
+    ⚠ Your free trial has ended
   </div>
 
-  <!-- Trial badge (shown when trial still active) -->
-  <div class="trial-badge" id="trial-badge" style="display:none">
-    <span id="trial-days">7</span> days left in your free trial
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-icon">⚡</div>
+    <div class="hero-title">Fence Breaker <span>Pro</span></div>
+    <div class="hero-sub">Never cut your live stream again</div>
   </div>
 
-  <!-- Expired badge (shown when trial expired) -->
-  <div class="expired-badge" id="expired-badge" style="display:none">
-    Your trial has ended — activate to continue
+  <!-- Pricing -->
+  <div class="price-block">
+    <div class="price-left">
+      <div class="price-amount"><sup style="font-size:11px;margin-top:8px">R$</sup>39<span style="font-size:18px">,90</span></div>
+      <div class="price-period">por mês · cancele quando quiser</div>
+    </div>
+    <div class="price-tag">MOST POPULAR</div>
   </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon">✓</div>
+      <span><strong>Unlimited</strong> destinations simultaneously</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✓</div>
+      <span>Up to <strong>5 minutes</strong> of stream delay</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✓</div>
+      <span>Twitch, YouTube, Kick, Facebook + Custom RTMP</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✓</div>
+      <span>Platform isolation — one drops, others keep running</span>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">✓</div>
+      <span>Preset delay slots + keyboard shortcuts</span>
+    </div>
+    <div class="feat" style="opacity:.45">
+      <div class="feat-icon" style="border-color:var(--border);background:transparent;">✗</div>
+      <span style="color:var(--muted)">Free trial: 1 destination · 60s max delay</span>
+    </div>
+  </div>
+
+  <!-- Buy CTA -->
+  <button class="btn-buy" onclick="doBuy()">
+    Get Fence Breaker Pro →
+  </button>
+
+  <!-- Activate existing license -->
+  <div class="divider">Already purchased?</div>
 
   <div>
-    <span class="section-label">License key</span>
-    <input class="key-inp" id="key-inp" type="text"
-           placeholder="Paste your license key here"
-           onkeydown="if(event.key==='Enter')doActivate()">
+    <span class="section-label">Paste your license key</span>
+    <div class="key-row">
+      <input class="key-inp" id="key-inp" type="text"
+             placeholder="XXXX-XXXX-XXXX-XXXX"
+             onkeydown="if(event.key==='Enter')doActivate()">
+      <button class="btn-activate" id="btn-activate" onclick="doActivate()">Activate</button>
+    </div>
   </div>
 
   <div class="error-msg" id="err-msg"></div>
-  <div class="loading" id="loading">Validating license…</div>
+  <div class="loading-msg" id="loading">Validating license…</div>
 
-  <button class="btn-activate" id="btn-activate" onclick="doActivate()">Activate</button>
-
-  <!-- Trial button only shown when trial available -->
-  <div id="trial-section">
-    <div class="divider">or</div>
-    <button class="btn-trial" id="btn-trial" onclick="doTrial()">Start 7-day free trial</button>
+  <!-- Trial link -->
+  <div class="trial-row" id="trial-row" style="display:none">
+    Not ready to buy? <a onclick="doTrial()">Start your 7-day free trial</a>
   </div>
 
-  <div class="buy-link">
-    Don't have a license? <a href="#" onclick="doBuy()">Buy Fence Breaker Pro →</a>
-  </div>
 </div>
 
 <script>
@@ -150,39 +223,33 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!status) return;
 
   if (status.trialExpired) {
-    document.getElementById('expired-badge').style.display = 'block';
-    document.getElementById('trial-section').style.display = 'none';
-  } else if (status.daysLeft > 0) {
-    document.getElementById('trial-badge').style.display = 'block';
-    document.getElementById('trial-days').textContent = status.daysLeft;
-    // If trial already started, hide the start trial button
-    document.getElementById('btn-trial').textContent = `Continue trial (${status.daysLeft}d left)`;
-    document.getElementById('btn-trial').onclick = doTrial;
+    document.getElementById('badge-expired').classList.add('show');
+  } else {
+    document.getElementById('badge-trial').classList.add('show');
+    if (status.daysLeft !== undefined)
+      document.getElementById('trial-days-left').textContent = status.daysLeft;
+  }
+
+  if (!status.trialExpired && !status.trialStart) {
+    document.getElementById('trial-row').style.display = 'block';
   }
 });
 
 async function doActivate() {
   const key = document.getElementById('key-inp').value.trim();
   if (!key) { showError('Please paste your license key.'); return; }
-
   setLoading(true);
   const res = await window.api?.activateLicense(key);
   setLoading(false);
-
   if (res?.ok) {
     window.api?.activationDone();
   } else {
-    showError(res?.error || 'Activation failed.');
+    showError(res?.error || 'Invalid key — check your email and try again.');
   }
 }
 
-function doTrial() {
-  window.api?.startTrial();
-}
-
-function doBuy() {
-  window.api?.openBuyPage();
-}
+function doTrial() { window.api?.startTrial(); }
+function doBuy()   { window.api?.openBuyPage(); }
 
 function showError(msg) {
   const el = document.getElementById('err-msg');

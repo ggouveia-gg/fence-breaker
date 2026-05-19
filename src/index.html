@@ -23,6 +23,9 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tb-dot.live{background:var(--red);box-shadow:0 0 8px var(--red);animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;-webkit-app-region:no-drag;}
+.tb-encoder{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);}
+.tb-encoder.hw{color:var(--green);border-color:rgba(34,197,94,.3);}
+.tb-encoder.sw{color:var(--yellow);border-color:rgba(245,158,11,.3);}
 .tb-timer{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:60px;text-align:right;}
 .tb-dest{font-size:11px;color:var(--muted);padding:2px 8px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);}
 .tb-dest.active{color:var(--accent);border-color:var(--accent2);}
@@ -37,7 +40,8 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .nav-item:hover{color:var(--text);background:var(--bg3);}
 .nav-item.active{color:var(--accent);background:rgba(0,229,255,.06);border-left:2px solid var(--accent);}
 .nav-spacer{flex:1;}
-.nav-ver{padding:12px 16px;font-size:10px;color:var(--muted);}
+.nav-ver{padding:12px 16px;font-size:10px;color:var(--muted);transition:.15s;}
+.nav-ver:hover{color:var(--accent);}
 .content{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
 
 /* ── Dashboard ── */
@@ -172,6 +176,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .modal-btns button{padding:7px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;}
 .modal-btns .btn-cancel{background:var(--bg3);color:var(--muted);}
 .modal-btns .btn-save{background:var(--accent);color:#000;}
+/* ── Quality buttons ── */
+.bq-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:72px;}
+.bq-btn:hover{border-color:var(--accent);color:var(--accent);}
+.bq-btn.bq-active{background:rgba(0,229,255,.1);border-color:var(--accent);color:var(--accent);}
+.bq-sub{font-size:9px;font-weight:400;color:var(--muted);margin-top:1px;}
+.bq-btn.bq-active .bq-sub{color:var(--accent2);}
 /* ── Per-platform status dot ── */
 .plat-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:transparent;margin-left:6px;vertical-align:middle;transition:.3s;}
 .plat-dot.err{background:var(--red);box-shadow:0 0 5px var(--red);}
@@ -187,17 +197,37 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .lwarn{color:var(--yellow);}
 
 /* ── License / Update banners ── */
-.lic-banner{display:none;align-items:center;gap:10px;padding:0 16px;height:34px;font-size:11px;flex-shrink:0;}
+.lic-banner{display:none;align-items:center;gap:10px;padding:0 16px;height:38px;font-size:11px;flex-shrink:0;}
 .lic-banner.show{display:flex;}
-.lic-banner.trial{background:#1a1400;border-bottom:1px solid #f59e0b44;color:var(--yellow);}
-.lic-banner.expired{background:#1a0000;border-bottom:1px solid #ef444444;color:var(--red);}
-.lic-banner.update{background:#001a1a;border-bottom:1px solid #00e5ff44;color:var(--accent);}
-.lic-banner .lb-msg{flex:1;}
-.lic-banner .lb-btn{padding:3px 12px;border-radius:5px;border:none;font-size:11px;font-weight:700;cursor:pointer;}
+.lic-banner.trial{
+  background:linear-gradient(90deg,rgba(245,158,11,.1) 0%,rgba(245,158,11,.04) 100%);
+  border-bottom:1px solid rgba(245,158,11,.25);color:var(--yellow);
+}
+.lic-banner.expired{
+  background:linear-gradient(90deg,rgba(239,68,68,.12) 0%,rgba(239,68,68,.04) 100%);
+  border-bottom:1px solid rgba(239,68,68,.3);color:var(--red);
+}
+.lic-banner.update{
+  background:linear-gradient(90deg,rgba(0,229,255,.08) 0%,rgba(0,229,255,.02) 100%);
+  border-bottom:1px solid rgba(0,229,255,.2);color:var(--accent);
+}
+.lic-banner .lb-icon{font-size:13px;flex-shrink:0;}
+.lic-banner .lb-msg{flex:1;font-weight:500;}
+.lic-banner .lb-price{
+  font-size:10px;color:var(--muted);margin-right:2px;opacity:.8;
+}
+.lic-banner .lb-btn{
+  padding:5px 14px;border-radius:6px;border:none;
+  font-size:11px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap;
+}
 .lic-banner.trial  .lb-btn{background:var(--yellow);color:#000;}
+.lic-banner.trial  .lb-btn:hover{background:#d97706;color:#fff;}
 .lic-banner.expired .lb-btn{background:var(--red);color:#fff;}
+.lic-banner.expired .lb-btn:hover{background:#dc2626;}
 .lic-banner.update .lb-btn{background:var(--accent);color:#000;}
-.lic-banner .lb-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;}
+.lic-banner.update .lb-btn:hover{background:var(--accent2);}
+.lic-banner .lb-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px;}
+.lic-banner .lb-close:hover{color:var(--text);}
 /* ── Toast ── */
 #toast{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:999;}
 .ti{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:12px;transition:opacity .3s;}
@@ -217,6 +247,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
   </div>
   <div class="tb-right">
     <div class="tb-dest" id="tb-dest">no destinations</div>
+    <span class="tb-encoder" id="tb-encoder" title="Video encoder in use">·</span>
     <span class="tb-timer" id="timer">00:00:00</span>
     <button class="tb-btn" onclick="win('minimize')">─</button>
     <button class="tb-btn" onclick="win('maximize')">□</button>
@@ -224,21 +255,27 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
   </div>
 </div>
 
-<!-- License banner (trial / expired) -->
+<!-- License banner (trial) -->
 <div class="lic-banner trial" id="banner-trial">
-  <span class="lb-msg" id="banner-trial-msg">⏳ Trial: <b id="trial-days-left">7</b> days remaining</span>
-  <button class="lb-btn" onclick="window.api?.openBuyPage()">Upgrade to Pro</button>
+  <span class="lb-icon">⏳</span>
+  <span class="lb-msg">Free trial — <b id="trial-days-left">7</b> days left · 1 destination · 60s max</span>
+  <span class="lb-price">R$ 39,90/mês</span>
+  <button class="lb-btn" onclick="window.api?.openBuyPage()">Upgrade to Pro →</button>
 </div>
+
+<!-- License banner (expired) -->
 <div class="lic-banner expired" id="banner-expired">
-  <span class="lb-msg">⚠ Trial expired — limited to 1 destination &amp; 60s delay</span>
-  <button class="lb-btn" onclick="window.api?.openBuyPage()">Activate License</button>
+  <span class="lb-icon">🔒</span>
+  <span class="lb-msg">Trial ended — limited to 1 destination &amp; 60s delay</span>
+  <button class="lb-btn" onclick="window.api?.openBuyPage()">Assinar Pro por R$ 39,90/mês</button>
 </div>
 
 <!-- Update banner -->
 <div class="lic-banner update" id="banner-update">
-  <span class="lb-msg">⬆ FenceBreaker <b id="update-version"></b> is available</span>
+  <span class="lb-icon">⬆</span>
+  <span class="lb-msg">Fence Breaker <b id="update-version"></b> is available</span>
   <button class="lb-btn" onclick="doUpdate()">Update now</button>
-  <button class="lb-close" onclick="document.getElementById('banner-update').classList.remove('show')" title="Later">✕</button>
+  <button class="lb-close" onclick="document.getElementById('banner-update').classList.remove('show')" title="Dismiss">✕</button>
 </div>
 
 <!-- Layout -->
@@ -248,7 +285,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
     <div class="nav-item" id="nav-setup"     onclick="showPage('setup')">⚙ Settings</div>
     <div class="nav-item" id="nav-log"       onclick="showPage('log')">📋 Log</div>
     <div class="nav-spacer"></div>
-    <div class="nav-ver">v6.0.0</div>
+    <div class="nav-ver" id="nav-ver" onclick="checkUpdateManual()" title="Click to check for updates" style="cursor:pointer;">v—</div>
   </div>
 
   <div class="content">
@@ -288,7 +325,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         <!-- Slider 0 – 600s -->
         <div class="delay-slider-row">
           <span class="slider-label">0s</span>
-          <input class="delay-slider" id="delay-slider" type="range" min="0" max="600" value="0"
+          <input class="delay-slider" id="delay-slider" type="range" min="0" max="300" value="0"
                  oninput="onSlider(this.value)" onchange="applySlider(this.value)">
           <span class="slider-label">600s</span>
         </div>
@@ -301,7 +338,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 
         <!-- Direct input -->
         <div class="delay-stepper" style="gap:8px">
-          <input id="direct-val" type="number" min="0" max="600" placeholder="any seconds…"
+          <input id="direct-val" type="number" min="0" max="300" placeholder="any seconds…"
                  style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;
                         padding:9px 14px;color:var(--text);font-size:13px;outline:none;width:160px;"
                  onkeydown="if(event.key==='Enter')applyDirect()">
@@ -346,7 +383,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       <div class="modal">
         <h3>Edit Preset</h3>
         <label>Delay (seconds)</label>
-        <input id="modal-val" type="number" min="0" max="600" placeholder="30">
+        <input id="modal-val" type="number" min="0" max="300" placeholder="30">
         <label>Label (optional)</label>
         <input id="modal-lbl" type="text" maxlength="10" placeholder="ANTI-SNIPE">
         <div class="modal-btns">
@@ -461,10 +498,44 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
       </div>
 
       <div>
-        <div class="setup-section-title">Step 3 — Stream</div>
+        <div class="setup-section-title">Step 3 — Output Quality</div>
+        <div class="setup-card">
+          <div class="step-title" style="margin-bottom:10px;">Bitrate &amp; FPS</div>
+          <div class="step-desc" style="margin-bottom:14px;">
+            Set to match your OBS output. 4K needs at least 20,000 kbps. Platforms cap FPS: Twitch 60fps, YouTube 120fps — streaming above that will be rejected.
+          </div>
+
+          <div style="margin-bottom:12px;">
+            <div class="setup-section-title" style="margin-bottom:6px;">Video bitrate</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+              <button class="bq-btn" data-bitrate="6000"  onclick="setBitrate(6000)">6 Mbps<span class="bq-sub">1080p</span></button>
+              <button class="bq-btn" data-bitrate="12000" onclick="setBitrate(12000)">12 Mbps<span class="bq-sub">1440p</span></button>
+              <button class="bq-btn" data-bitrate="25000" onclick="setBitrate(25000)">25 Mbps<span class="bq-sub">4K</span></button>
+              <button class="bq-btn" data-bitrate="50000" onclick="setBitrate(50000)">50 Mbps<span class="bq-sub">4K Max</span></button>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input id="custom-bitrate" type="number" min="1000" max="60000" step="500"
+                class="custom-inp" style="width:120px;" placeholder="kbps"
+                oninput="setBitrateCustom(this.value)">
+              <span style="font-size:11px;color:var(--muted);">kbps (custom)</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="setup-section-title" style="margin-bottom:6px;">FPS cap</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="bq-btn" data-fps="30"  onclick="setFps(30)">30 fps</button>
+              <button class="bq-btn bq-active" data-fps="60"  onclick="setFps(60)">60 fps<span class="bq-sub">default</span></button>
+              <button class="bq-btn" data-fps="120" onclick="setFps(120)">120 fps<span class="bq-sub">YouTube</span></button>
+              <button class="bq-btn" data-fps="0"   onclick="setFps(0)">Match OBS<span class="bq-sub">passthrough</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setup-section-title">Step 4 — Stream</div>
         <div class="setup-card">
           <div class="setup-step">
-            <div class="step-num">3</div>
+            <div class="step-num">4</div>
             <div>
               <div class="step-title">Start streaming in OBS</div>
               <div class="step-desc">
@@ -522,6 +593,22 @@ window.api?.onUpdateAvailable(data => {
 function doUpdate() {
   const url = document.getElementById('banner-update')._updateUrl;
   window.api?.openUpdatePage(url);
+}
+
+async function checkUpdateManual() {
+  const el = document.getElementById('nav-ver');
+  const orig = el.textContent;
+  el.textContent = 'checking…';
+  const update = await window.api?.checkUpdate();
+  el.textContent = orig;
+  if (update) {
+    document.getElementById('update-version').textContent = update.version;
+    document.getElementById('banner-update')._updateUrl = update.url;
+    document.getElementById('banner-update').classList.add('show');
+    toast('ok', `Update v${update.version} available!`);
+  } else {
+    toast('ok', 'You\'re up to date!');
+  }
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -582,10 +669,62 @@ window.addEventListener('DOMContentLoaded', async () => {
   loadSavedConfig();
   refreshActiveBadges();
   renderPresets();
+  // Quality buttons
+  _markBitrateBtn(vsBitrate);
+  _markFpsBtn(vsFps);
+  const bitrateInp = document.getElementById('custom-bitrate');
+  if (bitrateInp) bitrateInp.value = vsBitrate;
+  window.api?.setVideoSettings({ bitrateKbps: vsBitrate, fps: vsFps });
+  // Show real app version in sidebar
+  const ver = await window.api?.getAppVersion();
+  if (ver) document.getElementById('nav-ver').textContent = 'v' + ver;
   // Load current license status
   const status = await window.api?.getLicenseStatus();
   if (status) applyLicenseStatus(status);
 });
+
+// ── Video quality controls ────────────────────────────────────────────────────
+let vsBitrate = parseInt(localStorage.getItem('vs_bitrate') || '6000', 10);
+let vsFps     = parseInt(localStorage.getItem('vs_fps')     || '60',   10);
+
+function _markBitrateBtn(kbps) {
+  document.querySelectorAll('.bq-btn[data-bitrate]').forEach(b => {
+    b.classList.toggle('bq-active', Number(b.dataset.bitrate) === kbps);
+  });
+  const inp = document.getElementById('custom-bitrate');
+  if (inp) inp.value = kbps;
+}
+function _markFpsBtn(fps) {
+  document.querySelectorAll('.bq-btn[data-fps]').forEach(b => {
+    b.classList.toggle('bq-active', Number(b.dataset.fps) === fps);
+  });
+}
+function _syncVideoSettings() {
+  localStorage.setItem('vs_bitrate', vsBitrate);
+  localStorage.setItem('vs_fps',     vsFps);
+  window.api?.setVideoSettings({ bitrateKbps: vsBitrate, fps: vsFps });
+  const fpsLabel = vsFps === 0 ? 'passthrough' : `${vsFps}fps`;
+  log('ok', `Quality: ${vsBitrate}kbps ${fpsLabel}`);
+}
+
+function setBitrate(kbps) {
+  vsBitrate = kbps;
+  _markBitrateBtn(kbps);
+  _syncVideoSettings();
+}
+function setBitrateCustom(val) {
+  const k = Math.max(1000, Math.min(60000, parseInt(val, 10) || 6000));
+  vsBitrate = k;
+  _markBitrateBtn(k);
+  _syncVideoSettings();
+}
+function setFps(fps) {
+  vsFps = fps;
+  _markFpsBtn(fps);
+  if (fps === 0) toast('warn', 'Passthrough: ensure OBS FPS ≤ platform limit (60 or 120)');
+  _syncVideoSettings();
+}
+
 
 // ── API events ───────────────────────────────────────────────────────────────
 window.api?.onStreamEvent(data => {
@@ -619,6 +758,18 @@ window.api?.onDestinationsUpdated(data => {
 
 window.api?.onFbLog(data => { log(data.type, data.msg); });
 
+window.api?.onEncoderDetected(data => {
+  const el = document.getElementById('tb-encoder');
+  if (!el) return;
+  el.textContent = data.name;
+  el.className = 'tb-encoder ' + (data.name === 'x264' ? 'sw' : 'hw');
+  el.title = data.name === 'NVENC' ? 'NVIDIA hardware encoder — low CPU overhead'
+           : data.name === 'AMF'   ? 'AMD hardware encoder — low CPU overhead'
+           : data.name === 'QSV'   ? 'Intel hardware encoder — low CPU overhead'
+           : 'Software encoder (x264) — uses CPU; no GPU encoder detected';
+  log('ok', `Encoder: ${data.name}`);
+});
+
 window.api?.onDestinationError(data => {
   const p = data.platform;
   if (p) {
@@ -648,14 +799,20 @@ function showPage(p) {
     document.getElementById('nav-'+x)?.classList.remove('active');
   });
   const el = document.getElementById('page-'+p);
-  el.style.display = p === 'dashboard' ? 'flex' : (p === 'log' ? 'block' : 'block');
+  el.style.display = p === 'dashboard' ? 'flex' : 'block';
   document.getElementById('nav-'+p)?.classList.add('active');
+  if (p === 'log') {
+    window.api?.getLogPath().then(path => {
+      const el = document.getElementById('log-path-lbl');
+      if (el && path) el.textContent = path;
+    });
+  }
 }
 
 // ── Delay ─────────────────────────────────────────────────────────────────────
 async function setDelay(s) {
   if (licenseExpired) s = Math.min(s, 60); // degraded: max 60s
-  s = Math.max(0, Math.min(600, Math.round(s)));
+  s = Math.max(0, Math.min(300, Math.round(s)));
   if (delayBusy) return;
   delayBusy = true;
   const r = await window.api?.setDelay({ seconds: s });
@@ -918,18 +1075,6 @@ function toast(type, msg) {
 async function copyLogPath() {
   const p = await window.api?.getLogPath();
   if (p) navigator.clipboard.writeText(p).then(() => toast('ok', 'Path copied!'));
-}
-
-// Load log file path into label when Log page opens
-const _origShowPage = showPage;
-function showPage(p) {
-  _origShowPage(p);
-  if (p === 'log') {
-    window.api?.getLogPath().then(path => {
-      const el = document.getElementById('log-path-lbl');
-      if (el && path) el.textContent = path;
-    });
-  }
 }
 
 function log(type, msg) {

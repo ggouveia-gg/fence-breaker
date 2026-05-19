@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1280px; height: 720px; overflow: hidden; background: #0a0a0f; }
+body {
+  font-family: 'Segoe UI', -apple-system, Arial, sans-serif;
+  position: relative;
+}
+</style>
+</head>
+<body>
+<svg width="1280" height="720" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="0.9" fill="#161622"/>
+  </pattern>
+  <radialGradient id="leftglow" cx="32%" cy="50%" r="55%">
+    <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.14"/>
+    <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="rightglow" cx="80%" cy="50%" r="40%">
+    <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.1"/>
+    <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="glow4">
+    <feGaussianBlur stdDeviation="4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glow14">
+    <feGaussianBlur stdDeviation="14" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="soft4">
+    <feGaussianBlur stdDeviation="4"/>
+  </filter>
+  <linearGradient id="wavegrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%"   stop-color="#00e5ff" stop-opacity="0"/>
+    <stop offset="10%"  stop-color="#00e5ff" stop-opacity="1"/>
+    <stop offset="90%"  stop-color="#00e5ff" stop-opacity="1"/>
+    <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+  </linearGradient>
+  <mask id="wmask">
+    <rect x="600" y="0" width="680" height="720" fill="url(#wavegrad)"/>
+  </mask>
+  <linearGradient id="divider" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%"   stop-color="#00e5ff" stop-opacity="0"/>
+    <stop offset="30%"  stop-color="#00e5ff" stop-opacity="0.5"/>
+    <stop offset="70%"  stop-color="#00e5ff" stop-opacity="0.5"/>
+    <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+
+<!-- BG -->
+<rect width="1280" height="720" fill="#0a0a0f"/>
+<rect width="1280" height="720" fill="url(#dots)"/>
+<ellipse cx="420" cy="360" rx="420" ry="360" fill="url(#leftglow)"/>
+<ellipse cx="1020" cy="360" rx="320" ry="280" fill="url(#rightglow)"/>
+
+<!-- border -->
+<rect x="12" y="12" width="1256" height="696" rx="20"
+      fill="none" stroke="#00e5ff" stroke-width="0.8" stroke-opacity="0.18"/>
+
+<!-- vertical divider -->
+<line x1="620" y1="0" x2="620" y2="720" stroke="url(#divider)" stroke-width="0.8"/>
+
+<!-- LEFT SIDE ═══════════════════════════════════════════ -->
+
+<!-- lightning bolt -->
+<ellipse cx="148" cy="148" rx="60" ry="56" fill="#00e5ff" fill-opacity="0.07" filter="url(#soft4)"/>
+<path d="M162 82 L122 155 L154 155 L130 222 L174 142 L142 142 Z"
+      fill="#00e5ff" filter="url(#glow4)" transform="scale(1.1) translate(-14,-8)"/>
+
+<!-- FENCE BREAKER -->
+<text x="68" y="300" text-anchor="start"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="92" font-weight="900" letter-spacing="-3"
+      fill="#00e5ff" fill-opacity="0.05" filter="url(#soft4)">FENCE</text>
+<text x="68" y="300" text-anchor="start"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="92" font-weight="900" letter-spacing="-3"
+      fill="#f0f0f8">FENCE</text>
+
+<text x="68" y="400" text-anchor="start"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="92" font-weight="900" letter-spacing="-3"
+      fill="#00e5ff" fill-opacity="0.05" filter="url(#soft4)">BREAKER</text>
+<text x="68" y="400" text-anchor="start"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="92" font-weight="900" letter-spacing="-3"
+      fill="#f0f0f8">BREAKER</text>
+
+<!-- PRO badge -->
+<rect x="68" y="416" width="118" height="34" rx="7" fill="#00e5ff"/>
+<text x="127" y="439" text-anchor="middle"
+      font-family="'Segoe UI',sans-serif"
+      font-size="15" font-weight="800" fill="#0a0a0f" letter-spacing="5">PRO</text>
+
+<!-- tagline -->
+<text x="68" y="498" text-anchor="start"
+      font-family="'Segoe UI',sans-serif"
+      font-size="18" fill="#555575" letter-spacing="0.5">Real-time stream delay — no OBS restart</text>
+
+<!-- feature list -->
+<g font-family="'Segoe UI',sans-serif" font-size="14" fill="#3a3a58">
+  <text x="68" y="538">⚡ Adjustable delay  0 – 300 s</text>
+  <text x="68" y="562">⚡ Simultaneous  Twitch · YouTube · Kick</text>
+  <text x="68" y="586">⚡ 7-day free trial on install</text>
+</g>
+
+<!-- platform dots -->
+<circle cx="68"  cy="636" r="9" fill="#9146FF" opacity="0.9"/>
+<circle cx="100" cy="636" r="9" fill="#FF0000" opacity="0.85"/>
+<circle cx="132" cy="636" r="9" fill="#53FC18"  opacity="0.85"/>
+<text x="158" y="641"
+      font-family="'Segoe UI',sans-serif" font-size="11" fill="#2e2e46" letter-spacing="1.5">TWITCH · YOUTUBE · KICK</text>
+
+<!-- RIGHT SIDE ═══════════════════════════════════════════ -->
+
+<!-- waveform panel label -->
+<text x="950" y="92" text-anchor="middle"
+      font-family="'Courier New',monospace" font-size="11" fill="#00e5ff" fill-opacity="0.5" letter-spacing="2">STREAM SIGNAL</text>
+<line x1="660" y1="100" x2="830" y2="100" stroke="#1e1e30" stroke-width="1"/>
+<line x1="1070" y1="100" x2="1240" y2="100" stroke="#1e1e30" stroke-width="1"/>
+
+<!-- oscilloscope frame -->
+<rect x="660" y="110" width="580" height="260" rx="12"
+      fill="#0d0d18" stroke="#1e1e30" stroke-width="1"/>
+
+<!-- grid lines inside oscope -->
+<g stroke="#1a1a2c" stroke-width="0.7" stroke-dasharray="4,4">
+  <line x1="660" y1="170" x2="1240" y2="170"/>
+  <line x1="660" y1="240" x2="1240" y2="240"/>
+  <line x1="660" y1="310" x2="1240" y2="310"/>
+  <line x1="805" y1="110" x2="805" y2="370"/>
+  <line x1="950" y1="110" x2="950" y2="370"/>
+  <line x1="1095" y1="110" x2="1095" y2="370"/>
+</g>
+
+<!-- wave paths (set by script) -->
+<g mask="url(#wmask)">
+  <path id="wave-orig" stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.3"/>
+  <path id="wave-delay" stroke="#00e5ff" stroke-width="2.8" fill="none" filter="url(#glow4)"/>
+</g>
+
+<!-- delay arrow indicator between the two waves -->
+<line id="arr-v1" x1="805" y1="0" x2="805" y2="0" stroke="#00e5ff" stroke-width="1" stroke-dasharray="3,2" stroke-opacity="0.5"/>
+<line id="arr-v2" x1="805" y1="0" x2="805" y2="0" stroke="#00e5ff" stroke-width="1" stroke-dasharray="3,2" stroke-opacity="0.5"/>
+<line id="arr-h"  x1="0"   y1="0" x2="0"   y2="0" stroke="#00e5ff" stroke-width="1.2" marker-end="url(#arrowhead)" stroke-opacity="0.7"/>
+
+<!-- delay label chip -->
+<rect id="delay-chip-bg" x="0" y="0" width="88" height="20" rx="10"
+      fill="#00e5ff" fill-opacity="0.1" stroke="#00e5ff" stroke-width="0.6" stroke-opacity="0.5"/>
+<text id="delay-chip-txt" x="0" y="0" text-anchor="middle"
+      font-family="'Courier New',monospace" font-size="10" fill="#00e5ff">DELAY: 60 s</text>
+
+<!-- bottom stats -->
+<g font-family="'Courier New',monospace" font-size="12">
+  <rect x="660" y="384" width="130" height="38" rx="8" fill="#0d0d18" stroke="#1e1e30" stroke-width="1"/>
+  <text x="725" y="399" text-anchor="middle" fill="#555570" font-size="9">SOURCE</text>
+  <text x="725" y="415" text-anchor="middle" fill="#00e5ff" font-size="13">● LIVE</text>
+
+  <rect x="806" y="384" width="130" height="38" rx="8" fill="#0d0d18" stroke="#1e1e30" stroke-width="1"/>
+  <text x="871" y="399" text-anchor="middle" fill="#555570" font-size="9">DELAY</text>
+  <text x="871" y="415" text-anchor="middle" fill="#f0f0f8" font-size="13">60 s</text>
+
+  <rect x="952" y="384" width="130" height="38" rx="8" fill="#0d0d18" stroke="#1e1e30" stroke-width="1"/>
+  <text x="1017" y="399" text-anchor="middle" fill="#555570" font-size="9">OUTPUT</text>
+  <text x="1017" y="415" text-anchor="middle" fill="#22c55e" font-size="13">● SENDING</text>
+
+  <rect x="1098" y="384" width="142" height="38" rx="8" fill="#0d0d18" stroke="#1e1e30" stroke-width="1"/>
+  <text x="1169" y="399" text-anchor="middle" fill="#555570" font-size="9">PLATFORMS</text>
+  <text x="1169" y="415" text-anchor="middle" fill="#f0f0f8" font-size="13">3 active</text>
+</g>
+
+<!-- keyboard shortcut chips -->
+<g font-family="'Courier New',monospace" font-size="10" fill="#2a2a40">
+  <rect x="660" y="440" width="80" height="22" rx="5" fill="#111120" stroke="#1e1e30" stroke-width="1"/>
+  <text x="700" y="455" text-anchor="middle">+15 s</text>
+
+  <rect x="752" y="440" width="80" height="22" rx="5" fill="#111120" stroke="#1e1e30" stroke-width="1"/>
+  <text x="792" y="455" text-anchor="middle">−15 s</text>
+
+  <rect x="844" y="440" width="100" height="22" rx="5" fill="#00e5ff" fill-opacity="0.1" stroke="#00e5ff" stroke-width="0.7" stroke-opacity="0.4"/>
+  <text x="894" y="455" text-anchor="middle" fill="#00e5ff">GO LIVE</text>
+
+  <rect x="956" y="440" width="80" height="22" rx="5" fill="#111120" stroke="#1e1e30" stroke-width="1"/>
+  <text x="996" y="455" text-anchor="middle">30 s</text>
+
+  <rect x="1048" y="440" width="80" height="22" rx="5" fill="#111120" stroke="#1e1e30" stroke-width="1"/>
+  <text x="1088" y="455" text-anchor="middle">60 s</text>
+
+  <rect x="1140" y="440" width="100" height="22" rx="5" fill="#111120" stroke="#1e1e30" stroke-width="1"/>
+  <text x="1190" y="455" text-anchor="middle">MANUAL</text>
+</g>
+
+<!-- bottom quote -->
+<text x="950" y="504" text-anchor="middle"
+      font-family="'Segoe UI',sans-serif" font-size="13" fill="#2a2a42" font-style="italic">
+  "Something goes wrong on stream? You have 60 seconds."
+</text>
+
+<!-- version tag -->
+<text x="1240" y="700" text-anchor="end"
+      font-family="'Courier New',monospace" font-size="9" fill="#1e1e30">v6</text>
+</svg>
+
+<script>
+function wave(startX, endX, cy, amp, wl, phase) {
+  let d = '';
+  for (let x = startX; x <= endX; x += 4) {
+    const y = cy + amp * Math.sin((2 * Math.PI * (x - startX) / wl) + phase);
+    d += (x === startX ? 'M' : 'L') + x.toFixed(0) + ' ' + y.toFixed(1) + ' ';
+  }
+  return d;
+}
+
+const origY  = 230;
+const delayY = 270;
+const amp    = 38;
+const wl     = 145;
+
+document.getElementById('wave-orig').setAttribute('d',  wave(660, 1240, origY,  amp, wl, 0));
+document.getElementById('wave-delay').setAttribute('d', wave(660, 1240, delayY, amp, wl, Math.PI * 0.55));
+
+// vertical markers at x=805 (between orig peaks and delay peaks)
+document.getElementById('arr-v1').setAttribute('x1', 805);
+document.getElementById('arr-v1').setAttribute('x2', 805);
+document.getElementById('arr-v1').setAttribute('y1', origY - amp - 6);
+document.getElementById('arr-v1').setAttribute('y2', origY + amp + 6);
+
+document.getElementById('arr-v2').setAttribute('x1', 937);
+document.getElementById('arr-v2').setAttribute('x2', 937);
+document.getElementById('arr-v2').setAttribute('y1', delayY - amp - 6);
+document.getElementById('arr-v2').setAttribute('y2', delayY + amp + 6);
+
+// horizontal arrow between the two vertical marks
+document.getElementById('arr-h').setAttribute('x1', 810);
+document.getElementById('arr-h').setAttribute('x2', 932);
+document.getElementById('arr-h').setAttribute('y1', (origY + delayY) / 2);
+document.getElementById('arr-h').setAttribute('y2', (origY + delayY) / 2);
+
+// delay chip
+const cx = (805 + 937) / 2;
+const cy2 = (origY + delayY) / 2 - 18;
+document.getElementById('delay-chip-bg').setAttribute('x', cx - 44);
+document.getElementById('delay-chip-bg').setAttribute('y', cy2 - 14);
+document.getElementById('delay-chip-txt').setAttribute('x', cx);
+document.getElementById('delay-chip-txt').setAttribute('y', cy2);
+</script>
+</body>
+</html>

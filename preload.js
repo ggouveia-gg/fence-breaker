@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   // Relay control
   setDestinations:      (list) => ipcRenderer.invoke('set-destinations', list),
   setDelay:             (o)    => ipcRenderer.invoke('set-delay', o),
+  setVideoSettings:     (s)    => ipcRenderer.invoke('set-video-settings', s),
   getStatus:            ()     => ipcRenderer.invoke('get-status'),
 
   // Stream events
@@ -12,6 +13,8 @@ contextBridge.exposeInMainWorld('api', {
   onDestinationsUpdated:(cb) => ipcRenderer.on('destinations-updated',(_, d) => cb(d)),
   onTimerUpdate:        (cb) => ipcRenderer.on('timer-update',        (_, d) => cb(d)),
   onDestinationError:   (cb) => ipcRenderer.on('destination-error',   (_, d) => cb(d)),
+  onEncoderDetected:      (cb) => ipcRenderer.on('encoder-detected',        (_, d) => cb(d)),
+  onVideoSettingsUpdated: (cb) => ipcRenderer.on('video-settings-updated', (_, d) => cb(d)),
   onFbLog:              (cb) => ipcRenderer.on('fb-log',              (_, d) => cb(d)),
 
   // License
@@ -23,6 +26,7 @@ contextBridge.exposeInMainWorld('api', {
   onLicenseStatus:      (cb)  => ipcRenderer.on('license-status', (_, d) => cb(d)),
 
   // Updater
+  getAppVersion:        ()    => ipcRenderer.invoke('get-app-version'),
   checkUpdate:          ()    => ipcRenderer.invoke('check-update'),
   onUpdateAvailable:    (cb)  => ipcRenderer.on('update-available', (_, d) => cb(d)),
   openUpdatePage:       (url) => ipcRenderer.send('open-update-page', url),

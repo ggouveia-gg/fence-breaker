@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 600px; height: 600px; overflow: hidden; background: #0a0a0f; }
+body {
+  font-family: 'Segoe UI', -apple-system, Arial, sans-serif;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+</style>
+</head>
+<body>
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="0.9" fill="#161622"/>
+  </pattern>
+  <radialGradient id="topglow" cx="50%" cy="32%" r="48%">
+    <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.18"/>
+    <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="glow4">
+    <feGaussianBlur stdDeviation="4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glow10">
+    <feGaussianBlur stdDeviation="10" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="soft3">
+    <feGaussianBlur stdDeviation="3"/>
+  </filter>
+  <linearGradient id="wavegrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%"   stop-color="#00e5ff" stop-opacity="0"/>
+    <stop offset="15%"  stop-color="#00e5ff" stop-opacity="1"/>
+    <stop offset="85%"  stop-color="#00e5ff" stop-opacity="1"/>
+    <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+  </linearGradient>
+  <mask id="wavemask">
+    <rect x="0" y="0" width="600" height="600" fill="url(#wavegrad)"/>
+  </mask>
+</defs>
+
+<!-- BG -->
+<rect width="600" height="600" fill="#0a0a0f"/>
+<rect width="600" height="600" fill="url(#dots)"/>
+<ellipse cx="300" cy="200" rx="260" ry="200" fill="url(#topglow)"/>
+
+<!-- border -->
+<rect x="14" y="14" width="572" height="572" rx="20"
+      fill="none" stroke="#00e5ff" stroke-width="0.8" stroke-opacity="0.2"/>
+<rect x="22" y="22" width="556" height="556" rx="16"
+      fill="none" stroke="#00e5ff" stroke-width="0.3" stroke-opacity="0.1"/>
+
+<!-- lightning bolt -->
+<ellipse cx="300" cy="145" rx="52" ry="48" fill="#00e5ff" fill-opacity="0.07" filter="url(#soft3)"/>
+<path d="M314 82 L278 148 L306 148 L284 213 L324 136 L296 136 Z"
+      fill="#00e5ff" filter="url(#glow4)"/>
+
+<!-- divider -->
+<line x1="80" y1="232" x2="520" y2="232" stroke="#1e1e30" stroke-width="1"/>
+
+<!-- FENCE title glow -->
+<text x="300" y="310" text-anchor="middle"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="78" font-weight="900" letter-spacing="-2"
+      fill="#00e5ff" fill-opacity="0.06" filter="url(#soft3)">FENCE</text>
+<text x="300" y="390" text-anchor="middle"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="78" font-weight="900" letter-spacing="-2"
+      fill="#00e5ff" fill-opacity="0.06" filter="url(#soft3)">BREAKER</text>
+
+<!-- FENCE BREAKER text -->
+<text x="300" y="310" text-anchor="middle"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="78" font-weight="900" letter-spacing="-2"
+      fill="#f0f0f8">FENCE</text>
+<text x="300" y="390" text-anchor="middle"
+      font-family="'Segoe UI','Arial Black',sans-serif"
+      font-size="78" font-weight="900" letter-spacing="-2"
+      fill="#f0f0f8">BREAKER</text>
+
+<!-- PRO badge -->
+<rect x="232" y="402" width="136" height="34" rx="8" fill="#00e5ff"/>
+<text x="300" y="425" text-anchor="middle"
+      font-family="'Segoe UI',sans-serif"
+      font-size="15" font-weight="800" fill="#0a0a0f" letter-spacing="5">PRO</text>
+
+<!-- divider -->
+<line x1="80" y1="452" x2="520" y2="452" stroke="#1e1e30" stroke-width="1"/>
+
+<!-- waveforms (generated via script) -->
+<g mask="url(#wavemask)">
+  <path id="wave-bg" stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.25"/>
+  <path id="wave-main" stroke="#00e5ff" stroke-width="2.5" fill="none" filter="url(#glow4)"/>
+</g>
+
+<!-- delay badge -->
+<rect x="244" y="466" width="112" height="22" rx="11"
+      fill="#00e5ff" fill-opacity="0.08" stroke="#00e5ff" stroke-width="0.6" stroke-opacity="0.4"/>
+<text x="300" y="481" text-anchor="middle"
+      font-family="'Courier New',monospace" font-size="10" fill="#00e5ff" fill-opacity="0.85">0 – 300 s  delay</text>
+
+<!-- platform dots + labels -->
+<circle cx="242" cy="521" r="8" fill="#9146FF" opacity="0.9"/>
+<circle cx="278" cy="521" r="8" fill="#FF0000" opacity="0.85"/>
+<circle cx="314" cy="521" r="8" fill="#53FC18" opacity="0.85"/>
+
+<text x="300" y="548" text-anchor="middle"
+      font-family="'Segoe UI',sans-serif" font-size="9" fill="#2e2e48" letter-spacing="2.5">TWITCH · YOUTUBE · KICK</text>
+
+<!-- tagline -->
+<text x="300" y="575" text-anchor="middle"
+      font-family="'Segoe UI',sans-serif" font-size="12" fill="#444460" letter-spacing="1.5">Real-time stream delay</text>
+</svg>
+
+<script>
+function wave(startX, endX, cy, amp, wl, phase) {
+  let d = '';
+  for (let x = startX; x <= endX; x += 3) {
+    const y = cy + amp * Math.sin((2 * Math.PI * (x - startX) / wl) + phase);
+    d += (x === startX ? 'M' : 'L') + x + ' ' + y.toFixed(1) + ' ';
+  }
+  return d;
+}
+document.getElementById('wave-bg').setAttribute('d',
+  wave(50, 550, 500, 10, 100, 0));
+document.getElementById('wave-main').setAttribute('d',
+  wave(50, 550, 500, 10, 100, Math.PI * 0.6));
+</script>
+</body>
+</html>

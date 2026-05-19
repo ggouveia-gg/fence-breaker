@@ -1,6 +1,6 @@
 {
   "name": "fence-breaker",
-  "version": "6.0.4",
+  "version": "6.1.0",
   "description": "Stream delay — never cut your live. Multi-platform: Twitch, YouTube, Kick.",
   "author": "Fence Breaker <support@fencebreaker.io>",
   "license": "UNLICENSED",
@@ -47,7 +47,7 @@
       "shortcutName": "Fence Breaker",
       "warningsAsErrors": false
     },
-    "compression": "maximum",
+    "compression": "normal",
     "publish": {
       "provider": "github",
       "owner": "ggouveia-gg",

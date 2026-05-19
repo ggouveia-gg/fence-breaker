@@ -42,6 +42,7 @@ function startRelay() {
   relayProcess = spawn(process.execPath, [path.join(__dirname, 'relay.js')], {
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
   });
   relayProcess.stdout.on('data', d => {
     const msg = d.toString().trim();
@@ -134,6 +135,10 @@ function handleEvent(evt) {
     mainWindow?.webContents.send('destinations-updated', { names: data });
   } else if (type === 'destination-error') {
     mainWindow?.webContents.send('destination-error', data);
+  } else if (type === 'encoder-detected') {
+    mainWindow?.webContents.send('encoder-detected', { name: data });
+  } else if (type === 'video-settings-updated') {
+    mainWindow?.webContents.send('video-settings-updated', data);
   } else if (type === 'log') {
     mainWindow?.webContents.send('fb-log', data);
   }
@@ -147,6 +152,10 @@ ipcMain.handle('set-destinations', async (_, list) => {
 
 ipcMain.handle('set-delay', async (_, { seconds }) => {
   try { return await apiPost('/api/delay', { seconds }); } catch { return { ok: false }; }
+});
+
+ipcMain.handle('set-video-settings', async (_, settings) => {
+  try { return await apiPost('/api/video-settings', settings); } catch { return { ok: false }; }
 });
 
 ipcMain.handle('get-status', async () => {
@@ -173,6 +182,7 @@ ipcMain.on('window-close',    () => { stopRelay(); mainWindow?.close(); });
 
 // ── IPC — license ─────────────────────────────────────────────────────────────
 
+ipcMain.handle('get-app-version', () => app.getVersion());
 ipcMain.handle('get-license-status', () => license.getStatus());
 
 ipcMain.handle('activate-license', async (_, key) => {
@@ -194,7 +204,7 @@ ipcMain.on('activation-done', () => {
   showMainWindow();
 });
 
-const BUY_URL = 'https://gouveia58.gumroad.com/l/fencebreaker-pro';
+const BUY_URL = 'https://buy.stripe.com/dRm4gAgyr8vi0hr5r15gc01';
 
 ipcMain.on('open-buy-page', () => {
   shell.openExternal(BUY_URL);
@@ -224,7 +234,7 @@ function createSplash() {
 
 function createActivateWindow() {
   activateWindow = new BrowserWindow({
-    width: 480, height: 420, frame: false, resizable: false,
+    width: 500, height: 620, frame: false, resizable: false,
     backgroundColor: '#0a0a0f', center: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

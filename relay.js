@@ -20,7 +20,7 @@ const { spawn }       = require('child_process');
 const EventEmitter    = require('events');
 const http            = require('http');
 
-const MAX_BUFFER_MS  = 600_000; // 10-minute rolling buffer
+const MAX_BUFFER_MS  = 300_000; // 5-minute rolling buffer
 const FRAME_MS       = 33;      // ~30fps frame interval in ms
 const RETRY_DELAY_MS = 30_000;  // retry a failed encoder after 30 s
 
@@ -109,6 +109,81 @@ function buildURL(platform, key) {
   return base ? `${base}/${k}` : k; // custom = key is already full URL
 }
 
+// ── Encoder profiles + detection ──────────────────────────────────────────────
+
+// codec → name mapping (for detection only; args are built dynamically)
+const ENCODER_PROFILES = [
+  { name: 'NVENC', codec: 'h264_nvenc' },
+  { name: 'AMF',   codec: 'h264_amf'   },
+  { name: 'QSV',   codec: 'h264_qsv'   },
+  { name: 'x264',  codec: 'libx264'     },
+];
+
+// Build video+audio FFmpeg args dynamically from current settings.
+// fps=0 → no -r flag (passthrough input framerate — warn user: platforms cap at 60/120).
+function makeEncoderArgs(codec, bitrateKbps, fps) {
+  const bv      = `${bitrateKbps}k`;
+  const buf     = `${bitrateKbps * 2}k`;
+  const gop     = fps > 0 ? fps * 2 : 120;
+  const kfi     = fps > 0 ? fps     :  60;
+  const rateArg = fps > 0 ? ['-r', String(fps)] : [];
+  const audioArgs = ['-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-ac', '2'];
+
+  if (codec === 'h264_nvenc') return [
+    '-c:v', 'h264_nvenc', '-preset', 'p2', '-tune', 'll',
+    '-rc', 'vbr', '-b:v', bv, '-maxrate', bv, '-bufsize', buf,
+    '-profile:v', 'main', '-bf', '0',
+    ...rateArg, '-g', String(gop), '-keyint_min', String(kfi),
+    ...audioArgs,
+  ];
+  if (codec === 'h264_amf') return [
+    '-c:v', 'h264_amf', '-quality', 'speed',
+    '-b:v', bv, '-maxrate', bv, '-bufsize', buf,
+    '-profile:v', 'main', '-bf', '0',
+    ...rateArg, '-g', String(gop), '-keyint_min', String(kfi),
+    ...audioArgs,
+  ];
+  if (codec === 'h264_qsv') return [
+    '-c:v', 'h264_qsv', '-preset', 'veryfast',
+    '-b:v', bv, '-maxrate', bv, '-bufsize', buf,
+    '-profile:v', 'main', '-bf', '0',
+    ...rateArg, '-g', String(gop), '-keyint_min', String(kfi),
+    ...audioArgs,
+  ];
+  // libx264 fallback
+  return [
+    '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
+    '-profile:v', 'main', '-bf', '0',
+    '-b:v', bv, '-maxrate', bv, '-bufsize', buf,
+    ...rateArg, '-g', String(gop), '-keyint_min', String(kfi),
+    ...audioArgs,
+  ];
+}
+
+function testEncoderAvailable(ffmpegPath, codec) {
+  return new Promise(resolve => {
+    const args = [
+      '-f', 'lavfi', '-i', 'color=black:s=128x72:r=30',
+      '-f', 'lavfi', '-i', 'anullsrc=r=48000:cl=stereo',
+      '-c:v', codec, '-c:a', 'aac',
+      '-frames:v', '10',
+      '-f', 'null', '-',
+    ];
+    const proc = spawn(ffmpegPath, args, { stdio: 'ignore', windowsHide: true });
+    const timer = setTimeout(() => { try { proc.kill(); } catch {} resolve(false); }, 8000);
+    proc.on('close', code => { clearTimeout(timer); resolve(code === 0); });
+    proc.on('error', () => { clearTimeout(timer); resolve(false); });
+  });
+}
+
+async function detectBestEncoder(ffmpegPath) {
+  for (const profile of ENCODER_PROFILES) {
+    const ok = await testEncoderAvailable(ffmpegPath, profile.codec);
+    if (ok) return profile;
+  }
+  return ENCODER_PROFILES[ENCODER_PROFILES.length - 1];
+}
+
 // ── Main Relay class ───────────────────────────────────────────────────────────
 
 class Relay extends EventEmitter {
@@ -135,6 +210,19 @@ class Relay extends EventEmitter {
     // Send loop
     this.bufIdx       = 0;
     this.loopTimer    = null;
+
+    // Video quality settings (user-configurable)
+    this.videoSettings = { bitrateKbps: 6000, fps: 60 };
+
+    // Hardware encoder detection (async, resolves before OBS connects in practice)
+    this.encoderProfile  = null;
+    this.encoderName     = 'detecting';
+    this._encoderReady   = detectBestEncoder(this.ffmpeg).then(profile => {
+      this.encoderProfile = profile;
+      this.encoderName    = profile.name;
+      this._log('ok', `Encoder: ${profile.name} (${profile.codec})`);
+      this.emit('encoder-detected', profile.name);
+    });
   }
 
   get encoderReady() {
@@ -225,19 +313,24 @@ class Relay extends EventEmitter {
 
     // Auto-start encoders once codec headers are available
     if (this.encoders.size === 0 && this.videoHeader && this.audioHeader && this.destinations.length > 0) {
-      this._startAllEncoders();
+      this._maybeStartEncoders();
     }
   }
 
   // ── Per-destination FFmpeg encoder ───────────────────────────────────────────
 
-  _startAllEncoders() {
+  _maybeStartEncoders() {
+    if (!this.encoderProfile) {
+      // Detection still running — retry when done
+      this._encoderReady.then(() => this._maybeStartEncoders());
+      return;
+    }
+    if (!this.isReceiving || !this.videoHeader || !this.audioHeader) return;
     for (const dest of this.destinations) {
       if (!this.encoders.has(dest.platform)) {
         this._startOneEncoder(dest);
       }
     }
-    // Start loop after first batch of encoders
     if (!this.loopTimer && this.encoderReady) {
       this._seekToDelay();
       this._startLoop();
@@ -254,11 +347,7 @@ class Relay extends EventEmitter {
     const args = [
       '-loglevel', 'warning',
       '-f', 'flv', '-i', 'pipe:0',
-      '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
-      '-profile:v', 'main', '-bf', '0',
-      '-b:v', '6000k', '-maxrate', '6000k', '-bufsize', '12000k',
-      '-r', '60', '-g', '120', '-keyint_min', '60',
-      '-c:a', 'aac', '-b:a', '160k', '-ar', '48000', '-ac', '2',
+      ...makeEncoderArgs(this.encoderProfile.codec, this.videoSettings.bitrateKbps, this.videoSettings.fps),
       '-f', 'flv', url,
     ];
 
@@ -425,7 +514,7 @@ class Relay extends EventEmitter {
   // ── Public control API ────────────────────────────────────────────────────────
 
   setDelay(seconds) {
-    const newMs = Math.max(0, Math.min(600, seconds)) * 1000;
+    const newMs = Math.max(0, Math.min(300, seconds)) * 1000;
     const bufSec = this._bufferDurationSec();
 
     if (seconds > 0 && bufSec < seconds + 3) {
@@ -462,20 +551,42 @@ class Relay extends EventEmitter {
 
     // Start encoders for new destinations (if OBS connected and headers ready)
     if (this.isReceiving && this.videoHeader && this.audioHeader) {
-      for (const dest of newDests) {
-        if (!this.encoders.has(dest.platform)) {
-          this._startOneEncoder(dest);
-        }
-      }
-      if (!this.loopTimer && this.encoderReady) {
-        this._seekToDelay();
-        this._startLoop();
-      }
+      this._maybeStartEncoders();
     }
 
     const names = newDests.map(d => d.platform);
     this._log('ok', `Destinations → ${names.join(', ') || 'none'}`);
     this.emit('destinations-updated', names);
+  }
+
+  setVideoSettings({ bitrateKbps, fps }) {
+    const newBitrate = Math.max(1000, Math.min(60000, Number(bitrateKbps) || 6000));
+    const newFps     = [0, 30, 60, 120, 240].includes(Number(fps)) ? Number(fps) : 60;
+
+    const changed = newBitrate !== this.videoSettings.bitrateKbps || newFps !== this.videoSettings.fps;
+    this.videoSettings = { bitrateKbps: newBitrate, fps: newFps };
+
+    const fpsLabel = newFps === 0 ? 'passthrough' : `${newFps}fps`;
+    this._log('ok', `Video: ${newBitrate}kbps ${fpsLabel}`);
+    this.emit('video-settings-updated', this.videoSettings);
+
+    // Restart encoders with new settings if they're running
+    if (changed && this.encoderReady) {
+      this._restartAllEncoders();
+    }
+  }
+
+  _restartAllEncoders() {
+    const platforms = [...this.encoders.keys()];
+    this._stopAllEncoders();
+    // Start encoders first so _seekToDelay can deliver codec headers to them
+    for (const dest of this.destinations.filter(d => platforms.includes(d.platform))) {
+      this._startOneEncoder(dest);
+    }
+    if (this.encoderReady) {
+      this._seekToDelay();
+      this._startLoop();
+    }
   }
 
   getStatus() {
@@ -485,6 +596,8 @@ class Relay extends EventEmitter {
       delay:        this.delayMs / 1000,
       destinations: this.destinations.map(d => d.platform),
       bufferSecs:   this._bufferDurationSec(),
+      encoder:       this.encoderName,
+      videoSettings: this.videoSettings,
     };
   }
 
@@ -515,7 +628,9 @@ function startAPI(relay) {
   relay.on('delay-updated',        s => broadcast({ type: 'delay-updated', data: s }));
   relay.on('destinations-updated', n => broadcast({ type: 'destinations-updated', data: n }));
   relay.on('destination-error',    d => broadcast({ type: 'destination-error', data: d }));
-  relay.on('log',                  d => broadcast({ type: 'log', data: d }));
+  relay.on('encoder-detected',       n => broadcast({ type: 'encoder-detected', data: n }));
+  relay.on('video-settings-updated', s => broadcast({ type: 'video-settings-updated', data: s }));
+  relay.on('log',                    d => broadcast({ type: 'log', data: d }));
 
   const srv = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -541,8 +656,9 @@ function startAPI(relay) {
       res.end('{"ok":true}');
       try {
         const data = JSON.parse(body || '{}');
-        if (req.url === '/api/delay')        relay.setDelay(Number(data.seconds) || 0);
-        if (req.url === '/api/destinations') relay.setDestinations(Array.isArray(data) ? data : []);
+        if (req.url === '/api/delay')          relay.setDelay(Number(data.seconds) || 0);
+        if (req.url === '/api/destinations')   relay.setDestinations(Array.isArray(data) ? data : []);
+        if (req.url === '/api/video-settings') relay.setVideoSettings(data);
       } catch (e) { relay._log('warn', `parse err: ${e.message}`); }
     });
   });
